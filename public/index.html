@@ -3,669 +3,707 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fundação SCP - Sistema de Arquivamento</title>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Special+Elite&display=swap" rel="stylesheet">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Departamento Científico - SCP[RP] - Oficina do Caos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg: #0a0a0a;
-            --panel: #121212;
-            --border: #333;
-            --primary: #c5a059;
-            --primary-glow: rgba(197, 160, 89, 0.2);
-            --text: #c0c0c0;
-            --text-bright: #ffffff;
-            --danger: #8b0000;
-            --approved: #2e8b57;
-            --rejected: #b22222;
-            --font-mono: 'Share Tech Mono', monospace;
-            --font-classified: 'Special Elite', cursive;
+            --bg: #f0f2f5; 
+            --text: #1a1a1a;
+            --primary: #000000;
+            --border: #d0d5dd;
+            --gray-subtle: #f8f9fa;
+            --header-bg: #ffffff;
+            --header-text: #000000;
+            --card-bg: #ffffff;
+            --font-mono: 'Courier New', Courier, monospace;
+            --font-sans: 'Inter', 'Segoe UI', Arial, sans-serif;
+            
+            --approved: #28a745;
+            --rejected: #dc3545;
+            --pending: #ffc107;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: var(--bg); color: var(--text); font-family: var(--font-mono); overflow-x: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: var(--bg); color: var(--text); font-family: var(--font-sans); display: flex; flex-direction: column; height: 100vh; overflow: hidden; user-select: none; }
 
-        /* Telas de Entrada e Intro */
-        .fullscreen-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: var(--bg); z-index: 9999; display: flex;
-            flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 0.5s ease;
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animated-card { animation: slideInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
+
+        @keyframes spinLogo {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
-
-        .login-box {
-            background: var(--panel); border: 1px solid var(--primary);
-            padding: 40px; width: 400px; box-shadow: 0 0 20px var(--primary-glow);
-            text-align: center;
-        }
-
-        .login-box h2 { color: var(--primary); font-family: var(--font-classified); margin-bottom: 20px; letter-spacing: 2px; }
         
-        .form-control {
-            width: 100%; background: #000; border: 1px solid var(--border);
-            color: var(--text-bright); padding: 12px; margin-bottom: 15px;
-            font-family: var(--font-mono); font-size: 14px; outline: none;
-            transition: border-color 0.3s;
+        .scp-logo { 
+            width: 90px; 
+            margin-bottom: 20px; 
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
-        .form-control:focus { border-color: var(--primary); }
+        .logo-spinning { animation: spinLogo 2s linear infinite; }
 
-        .btn {
-            background: transparent; border: 1px solid var(--primary);
-            color: var(--primary); padding: 10px 20px; font-family: var(--font-mono);
-            font-weight: bold; cursor: pointer; text-transform: uppercase;
-            transition: all 0.3s ease; width: 100%;
-        }
-        .btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 10px var(--primary); }
-        .btn-danger { border-color: var(--danger); color: var(--danger); }
-        .btn-danger:hover { background: var(--danger); color: #fff; box-shadow: 0 0 10px var(--danger); }
+        #entry-screen { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; transition: opacity 0.5s ease; }
+        .login-gate-box { background: var(--card-bg); border: 2px solid var(--primary); width: 380px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); text-align: center; color: var(--text); animation: fadeIn 1s ease-out; border-radius: 4px; }
+        .login-gate-box h2 { font-family: var(--font-mono); font-size: 18px; letter-spacing: 1px; margin-top: 10px; color: var(--primary); font-weight: 900; }
+        
+        #intro-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: none; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
+        .intro-content { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        #intro-text { font-family: var(--font-mono); color: #000; font-size: 14px; letter-spacing: 2px; font-weight: bold; margin-top: 15px; }
+
+        #blocked-screen { position: fixed; inset: 0; background: #000000; color: #ff0000; z-index: 100000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: var(--font-mono); animation: fadeIn 0.3s ease; }
+        #blocked-screen h1 { font-size: 40px; margin-bottom: 20px; letter-spacing: 5px; border: 2px dashed #ff0000; padding: 20px; }
+        #blocked-screen p { font-size: 14px; margin-bottom: 30px; }
+
+        header { display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; background: var(--header-bg); border-bottom: 2px solid var(--primary); height: 70px; flex-shrink: 0; z-index: 20; color: var(--header-text); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .brand { display: flex; align-items: center; gap: 15px; }
+        .brand h1 { font-family: var(--font-mono); font-size: 16px; font-weight: 900; letter-spacing: 1px; margin: 0; color: var(--header-text); text-transform: uppercase; }
+        .brand span { color: #666; }
+        .system-status { display: flex; gap: 20px; font-family: var(--font-mono); font-size: 12px; font-weight: bold; align-items: center; }
+
+        nav.horizontal-nav { display: flex; align-items: center; background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 0 30px; flex-shrink: 0; z-index: 100; min-height: 55px; gap: 10px; }
+        .dropdown-trigger { padding: 10px 16px; cursor: pointer; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; color: var(--text); font-family: var(--font-mono); text-transform: uppercase; border-radius: 4px; }
+        .dropdown-trigger:hover { background: var(--gray-subtle); }
+
+        main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .content-wrapper { flex: 1; padding: 40px; overflow-y: auto; background: var(--bg); }
+
+        .view-header { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        .view-header h2 { font-family: var(--font-mono); font-size: 24px; font-weight: 900; color: var(--text); }
+
+        .docs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
+        .doc-card { background: var(--card-bg); border: 1px solid var(--border); border-top: 4px solid var(--primary); padding: 20px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.03); position: relative; border-radius: 4px; }
+        .doc-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+        .doc-card-title { font-family: var(--font-mono); font-weight: 900; font-size: 18px; color: var(--text); margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        .doc-card-class { font-size: 11px; color: #555; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; font-family: var(--font-mono); }
+        .doc-card-desc { font-size: 12px; color: #333; font-family: var(--font-sans); line-height: 1.5; }
+        .status-badge { position: absolute; top: 15px; right: 15px; font-size: 10px; font-family: var(--font-mono); font-weight: bold; padding: 3px 6px; border-radius: 3px; }
+
+        .btn { border: 2px solid var(--primary); background: transparent; padding: 10px 20px; font-family: var(--font-mono); font-size: 11px; font-weight: 900; cursor: pointer; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; color: var(--primary); transition: all 0.2s ease; border-radius: 2px; }
+        .btn:hover { background: var(--gray-subtle); }
+        .btn-fill { background: var(--primary); color: #fff; }
+        .btn-fill:hover { background: #333; color: #fff; }
         .btn-success { border-color: var(--approved); color: var(--approved); }
-        .btn-success:hover { background: var(--approved); color: #fff; box-shadow: 0 0 10px var(--approved); }
+        .btn-success:hover { background: var(--approved); color: #fff; }
+        .btn-danger { border-color: var(--rejected); color: var(--rejected); }
+        .btn-danger:hover { background: var(--rejected); color: #fff; }
 
-        /* Intro Screen / Spinner */
-        .logo-spinning { animation: spin 2s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+        .modal-box { background: var(--card-bg); border: 2px solid var(--primary); width: 850px; max-width: 95%; max-height: 90vh; display: flex; flex-direction: column; color: var(--text); position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.12); border-radius: 4px; }
+        .modal-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: var(--gray-subtle); flex-shrink: 0; border-bottom: 2px solid var(--primary); }
+        .modal-header h3 { font-family: var(--font-mono); font-weight: 900; font-size: 16px; }
+        .modal-body { padding: 30px; overflow-y: auto; position: relative; background: var(--card-bg); }
 
-        /* Layout Principal */
-        header {
-            border-bottom: 1px solid var(--border); padding: 20px 40px;
-            display: flex; justify-content: space-between; align-items: center;
-            background: var(--panel);
-        }
-        .header-title { font-family: var(--font-classified); color: var(--primary); font-size: 24px; letter-spacing: 3px; }
+        .doc-status-line { height: 6px; width: 100%; position: absolute; top: 0; left: 0; }
+
+        .form-row { display: flex; gap: 20px; margin-bottom: 15px; }
+        .form-group { flex: 1; }
+        .form-group label { display: block; font-size: 11px; font-family: var(--font-mono); font-weight: bold; color: var(--text); margin-bottom: 6px; text-transform: uppercase; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid var(--border); font-size: 13px; font-family: var(--font-sans); background: #ffffff; color: var(--text); outline: none; transition: 0.2s; border-radius: 2px; }
+        .form-control:focus { border-color: var(--primary); background: #fff; }
+        textarea.form-control { min-height: 80px; resize: vertical; }
+        .required-mark { color: red; }
+
+        .scp-document-reader { font-family: var(--font-mono); line-height: 1.6; font-size: 14px; position: relative; display: flex; gap: 20px; }
+        .scp-document-reader strong { font-weight: 900; color: #000; }
+        .scp-main-content { flex: 1; }
         
-        .main-container { max-width: 1400px; margin: 40px auto; padding: 0 20px; }
+        .scp-side-panel { width: 250px; flex-shrink: 0; display: none; flex-direction: column; gap: 15px; }
+        .rejection-note-box { background: #fff5f5; border: 2px solid var(--rejected); padding: 15px; font-size: 12px; }
+        .rejection-note-box h4 { color: var(--rejected); margin-bottom: 10px; border-bottom: 1px solid var(--rejected); padding-bottom: 5px; font-weight: 900; }
         
-        .toolbar { display: flex; justify-content: space-between; margin-bottom: 30px; align-items: center; flex-wrap: wrap; gap: 15px; }
-        .filter-group { display: flex; gap: 10px; }
-        .filter-btn { background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 8px 15px; cursor: pointer; font-family: var(--font-mono); }
-        .filter-btn.active, .filter-btn:hover { border-color: var(--primary); color: var(--primary); }
-
-        /* Grid de Documentos */
-        .docs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .scp-header-block { border-bottom: 3px solid #000; padding-bottom: 15px; margin-bottom: 20px; text-align: center; }
+        .scp-header-block h1 { font-size: 26px; font-weight: 900; margin: 0; letter-spacing: 2px; }
         
-        .doc-card {
-            background: var(--panel); border: 1px solid var(--border);
-            border-top: 3px solid var(--primary); padding: 20px; cursor: pointer;
-            position: relative; transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .doc-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); border-color: var(--primary); }
-        
-        .doc-card-title { font-family: var(--font-classified); font-size: 18px; color: var(--text-bright); margin-bottom: 10px; }
-        .doc-card-class { font-size: 12px; color: var(--primary); margin-bottom: 15px; }
-        .doc-card-desc { font-size: 13px; color: #888; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .scp-image-container { float: right; margin: 0 0 20px 20px; border: 2px solid #000; padding: 5px; background: #fff; max-width: 300px; text-align: center; font-size: 11px; font-weight: bold; }
+        .scp-image-container img { max-width: 100%; height: auto; display: block; border: 1px solid #000; margin-bottom: 5px; }
+        .scp-section { margin-bottom: 15px; text-align: justify; }
 
-        .status-badge { position: absolute; top: 15px; right: 15px; font-size: 10px; padding: 3px 8px; font-weight: bold; }
+        .censored-block { color: var(--rejected); font-weight: bold; border: 2px dashed var(--rejected); padding: 15px; text-align: center; margin: 10px 0; background: #fff5f5; }
 
-        /* Modais */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.85); z-index: 1000; display: none;
-            justify-content: center; align-items: center; padding: 20px;
-        }
-        
-        .modal-content {
-            background: var(--panel); border: 1px solid var(--primary);
-            width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto;
-            padding: 30px; position: relative; box-shadow: 0 0 30px var(--primary-glow);
-        }
+        .admin-eval-box { background: var(--gray-subtle); border: 2px dashed var(--primary); padding: 20px; margin-top: 30px; display: none; }
+        .admin-eval-box h4 { margin-bottom: 15px; font-family: var(--font-mono); font-weight: 900; }
 
-        .close-modal { position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; }
-        .close-modal:hover { color: var(--primary); }
+        .user-mgmt-item { display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid var(--border); padding: 10px 15px; margin-bottom: 10px; font-family: var(--font-mono); font-size: 12px; border-radius: 2px; }
+        .user-mgmt-item.blocked { border-color: var(--rejected); background: #fff0f0; }
 
-        .classified-header { text-align: center; border-bottom: 2px dashed var(--border); padding-bottom: 20px; margin-bottom: 20px; }
-        .classified-header h1 { font-family: var(--font-classified); color: var(--text-bright); font-size: 28px; }
-        
-        .dossier-section { margin-bottom: 20px; }
-        .dossier-section h3 { color: var(--primary); font-size: 14px; text-transform: uppercase; margin-bottom: 5px; border-left: 3px solid var(--primary); padding-left: 8px; }
-        .dossier-section p { font-size: 14px; line-height: 1.6; color: #ddd; }
-
-        .censored-block { background: #111; color: #111; padding: 2px 5px; user-select: none; border: 1px dotted #333; }
-        .censored-block:hover { color: var(--rejected); }
-
-        .img-container { width: 100%; max-height: 300px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border); text-align: center; background: #000; }
-        .img-container img { max-width: 100%; height: auto; object-fit: contain; max-height: 300px; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
     </style>
 </head>
 <body>
 
-    <!-- TELA DE LOGIN / GATE -->
-    <div id="entry-screen" class="fullscreen-overlay">
-        <div class="login-box">
-            <h2>FUNDAÇÃO SCP</h2>
-            <p style="font-size: 12px; margin-bottom: 20px; color: #777;">SISTEMA RESTRITO DE ARQUIVAMENTO</p>
-            <input type="text" id="gate-user" class="form-control" placeholder="IDENTIFICAÇÃO DE OPERADOR">
-            <input type="password" id="gate-pass" class="form-control" placeholder="CHAVE DE ACESSO">
-            <button class="btn" onclick="validateGateLogin()">AUTENTICAR</button>
+    <div id="blocked-screen">
+        <h1>[ ACESSO REVOGADO ]</h1>
+        <p>SUA CREDENCIAL FOI TERMINADA PELO COMANDO O5.<br>QUALQUER TENTATIVA DE INVASÃO ACIONARÁ A FORÇA TAREFA MÓVEL.</p>
+        <button class="btn" style="border-color:#ff0000; color:#ff0000;" onclick="location.reload()">VOLTAR AO INÍCIO</button>
+    </div>
+
+    <div id="entry-screen">
+        <div class="login-gate-box">
+            <img src="logo.png" alt="Logo SCP" class="scp-logo" onerror="this.style.display='none'">
+            <h2>SCP // OFICINA DO CAOS</h2>
+            <p style="font-family: var(--font-mono); font-size: 11px; color: #555; margin-bottom: 25px; font-weight: bold;">SISTEMA DE CREDENCIAIS RESTRITO</p>
+            
+            <div class="form-group" style="text-align: left; margin-bottom: 15px;">
+                <label>Designação Operacional</label>
+                <input type="text" id="gate-user" class="form-control" placeholder="ID de Acesso">
+            </div>
+            <div class="form-group" style="text-align: left; margin-bottom: 30px;">
+                <label>Chave de Acesso</label>
+                <input type="password" id="gate-pass" class="form-control" placeholder="Senha">
+            </div>
+            
+            <button class="btn btn-fill" style="width: 100%; justify-content: center;" onclick="validateGateLogin()">
+                <i class="fa-solid fa-terminal"></i> INICIAR SESSÃO
+            </button>
         </div>
     </div>
 
-    <!-- TELA DE BLOQUEIO -->
-    <div id="blocked-screen" class="fullscreen-overlay" style="display: none;">
-        <div class="login-box" style="border-color: var(--danger);">
-            <h2 style="color: var(--danger);">ACESSO REVOGADO</h2>
-            <p style="font-size: 13px; margin: 20px 0; color: #aaa;">Suas credenciais foram bloqueadas por ordem direta do Comando O5. O acesso a este terminal é estritamente proibido.</p>
-            <button class="btn btn-danger" onclick="location.reload()">ENCERRAR SESSÃO</button>
+    <div id="intro-screen">
+        <div class="intro-content">
+            <img id="intro-logo" src="logo.png" alt="Logo SCP" class="scp-logo" onerror="this.style.display='none'">
+            <p id="intro-text">ESTABELECENDO CONEXÃO SEGURA...</p>
         </div>
     </div>
 
-    <!-- TELA DE INTRO / CARREGAMENTO -->
-    <div id="intro-screen" class="fullscreen-overlay" style="display: none;">
-        <div style="text-align: center;">
-            <div id="intro-logo" style="font-size: 60px; color: var(--primary); margin-bottom: 20px;"><i class="fa-solid fa-shield-halved"></i></div>
-            <div id="intro-text" style="font-family: var(--font-classified); font-size: 20px; letter-spacing: 2px; color: var(--text-bright);">ESTABELECENDO CONEXÃO SEGURA...</div>
+    <header id="main-header">
+        <div class="brand">
+            <h1>DEP. CIENTÍFICO <span>//</span> OFICINA DO CAOS</h1>
         </div>
-    </div>
-
-    <!-- HEADER PRINCIPAL -->
-    <header>
-        <div class="header-title"><i class="fa-solid fa-file-shield"></i> BANCO DE DADOS SCP</div>
-        <div id="auth-status-ui" style="display: flex; gap: 15px; align-items: center; font-size: 13px;">
-            <!-- Preenchido via Script -->
+        <div class="system-status">
+            <div id="auth-status-ui" style="display: flex; gap: 15px; align-items: center;"></div>
         </div>
     </header>
 
-    <!-- CONTAINER DE DOCUMENTOS -->
-    <div class="main-container">
-        <div class="toolbar">
-            <div class="filter-group">
-                <button class="filter-btn active" onclick="renderDocs('Todos')">TODOS</button>
-                <button class="filter-btn" onclick="renderDocs('Safe')">SAFE</button>
-                <button class="filter-btn" onclick="renderDocs('Euclid')">EUCLID</button>
-                <button class="filter-btn" onclick="renderDocs('Keter')">KETER</button>
-                <button class="filter-btn" onclick="renderDocs('Thaumiel')">THAUMIEL</button>
-            </div>
-            <div id="admin-actions" style="display: none; gap: 10px;">
-                <button class="btn" onclick="openCreateModal()"><i class="fa-solid fa-plus"></i> NOVO REGISTRO</button>
-                <button class="btn" onclick="openAdminModal()" style="border-color: var(--primary);"><i class="fa-solid fa-users-gear"></i> GESTÃO DE PESSOAL</button>
-            </div>
-        </div>
+    <nav class="horizontal-nav">
+        <div class="dropdown-trigger" onclick="renderDocs('Todos')"><i class="fa-solid fa-folder-open"></i> Todos os Arquivos</div>
+        <div class="dropdown-trigger" onclick="renderDocs('Safe')"><i class="fa-solid fa-lock"></i> Safe</div>
+        <div class="dropdown-trigger" onclick="renderDocs('Euclid')"><i class="fa-solid fa-eye"></i> Euclid</div>
+        <div class="dropdown-trigger" onclick="renderDocs('Keter')"><i class="fa-solid fa-skull"></i> Keter</div>
+    </nav>
 
-        <div id="docs-container" class="docs-grid">
-            <!-- Os cards dos SCPs entram aqui dinamicamente -->
-        </div>
-    </div>
-
-    <!-- MODAL DE LEITURA DE DOCUMENTO -->
-    <div id="read-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="close-modal" onclick="closeModal('read-modal')"><i class="fa-solid fa-xmark"></i></button>
-            
-            <div id="read-status-line" style="height: 5px; width: 100%; margin-bottom: 20px;"></div>
-            
-            <div class="classified-header">
-                <h1 id="read-num">SCP-XXX</h1>
-                <p style="font-size: 12px; color: var(--primary); margin-top: 5px;">CLASSE DO OBJETO: <span id="read-class">SAFE</span></p>
-            </div>
-
-            <div id="read-img-box" class="img-container" style="display:none;">
-                <img id="read-img" src="" alt="Registro Fotográfico">
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; font-size: 13px; background: #000; padding: 15px; border: 1px solid var(--border);">
-                <div><strong>Pesquisador Responsável:</strong> <span id="read-sci">---</span></div>
-                <div><strong>Classe-D Envolvido:</strong> <span id="read-dclass">---</span></div>
-                <div id="box-companions" style="grid-column: span 2; display: none;"><strong>Equipe de Apoio / Acompanhantes:</strong> <span id="read-comp">---</span></div>
-            </div>
-
-            <div class="dossier-section">
-                <h3>Procedimentos Especiais de Contenção</h3>
-                <p id="read-cont">Carregando...</p>
-            </div>
-
-            <div class="dossier-section">
-                <h3>Descrição</h3>
-                <p id="read-desc">Carregando...</p>
-            </div>
-
-            <div class="dossier-section">
-                <h3>Observações e Adendos</h3>
-                <p id="read-obs">Carregando...</p>
-            </div>
-
-            <!-- Painel de Rejeição (Visível se o doc foi rejeitado e o usuário for o criador/admin) -->
-            <div id="side-panel" style="display:none; margin-top: 20px; padding: 15px; background: rgba(178,34,34,0.1); border: 1px solid var(--rejected);">
-                <h4 style="color: var(--rejected); font-size: 13px; margin-bottom: 5px;"><i class="fa-solid fa-triangle-exclamation"></i> MOTIVO DA CENSURA / REJEIÇÃO PELO O5:</h4>
-                <p id="side-reject-reason" style="font-size: 13px; color: #ff9999;"></p>
-            </div>
-
-            <!-- Painel de Avaliação do Comando O5 -->
-            <div id="eval-panel" style="display: none; margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 20px;">
-                <h3 style="color: var(--primary); font-size: 14px; margin-bottom: 10px;"><i class="fa-solid fa-gavel"></i> PAINEL DE JULGAMENTO DO COMANDO O5</h3>
-                <textarea id="eval-reason" class="form-control" placeholder="Justificativa obrigatória em caso de rejeição/censura..." style="height: 80px; margin-bottom: 10px;"></textarea>
-                <div style="display: flex; gap: 10px;">
-                    <button id="btn-approve" class="btn btn-success" style="flex: 1;"><i class="fa-solid fa-check"></i> APROVAR REGISTRO</button>
-                    <button id="btn-reject" class="btn btn-danger" style="flex: 1;"><i class="fa-solid fa-ban"></i> REJEITAR / CENSURAR</button>
+    <main>
+        <div class="content-wrapper">
+            <div class="view-header">
+                <h2 id="view-title">Banco de Dados SCP</h2>
+                <div id="admin-actions" style="display: none; gap: 10px;">
+                    <button class="btn" onclick="openAdminModal()"><i class="fa-solid fa-users-gear"></i> Gestão O5</button>
+                    <button class="btn btn-fill" onclick="openCreateModal()"><i class="fa-solid fa-plus"></i> Novo Documento SCP</button>
                 </div>
             </div>
+            <div class="docs-grid" id="docs-container"></div>
         </div>
-    </div>
+    </main>
 
-    <!-- MODAL DE CRIAÇÃO DE DOCUMENTO -->
-    <div id="create-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="close-modal" onclick="closeModal('create-modal')"><i class="fa-solid fa-xmark"></i></button>
-            <div class="classified-header" style="margin-bottom: 15px;">
-                <h1>NOVO REGISTRO DE ANOMALIA</h1>
+    <div class="modal-overlay" id="create-modal">
+        <div class="modal-box" style="width: 900px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-file-shield"></i> REDIGIR NOVO REGISTRO SCP</h3>
+                <i class="fa-solid fa-xmark" style="cursor:pointer; font-size: 18px;" onclick="closeModal('create-modal')"></i>
             </div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div>
-                    <label style="font-size: 11px; color: var(--primary);">Número SCP *</label>
-                    <input type="text" id="doc-num" class="form-control" placeholder="Ex: 9999">
-                </div>
-                <div>
-                    <label style="font-size: 11px; color: var(--primary);">Classe do Objeto *</label>
-                    <select id="doc-class" class="form-control">
-                        <option value="Safe">Safe</option>
-                        <option value="Euclid">Euclid</option>
-                        <option value="Keter">Keter</option>
-                        <option value="Thaumiel">Thaumiel</option>
-                    </select>
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div>
-                    <label style="font-size: 11px; color: var(--primary);">Pesquisador Responsável *</label>
-                    <input type="text" id="doc-scientist" class="form-control" placeholder="Dr. Sobrenome">
-                </div>
-                <div>
-                    <label style="font-size: 11px; color: var(--primary);">Classe-D Envolvido *</label>
-                    <input type="text" id="doc-dclass" class="form-control" placeholder="D-XXXX">
-                </div>
-            </div>
-
-            <div>
-                <label style="font-size: 11px; color: var(--primary);">Acompanhantes / Equipe de Apoio (Opcional)</label>
-                <input type="text" id="doc-companions" class="form-control" placeholder="Nomes dos agentes ou pesquisadores auxiliares">
-            </div>
-
-            <div>
-                <label style="font-size: 11px; color: var(--primary);">Registro Fotográfico (Opcional)</label>
-                <input type="file" id="doc-image" class="form-control" accept="image/*" style="padding: 8px;">
-            </div>
-
-            <div>
-                <label style="font-size: 11px; color: var(--primary);">Procedimentos Especiais de Contenção *</label>
-                <textarea id="doc-containment" class="form-control" style="height: 70px;" placeholder="Como o item deve ser mantido..."></textarea>
-            </div>
-
-            <div>
-                <label style="font-size: 11px; color: var(--primary);">Descrição *</label>
-                <textarea id="doc-desc" class="form-control" style="height: 70px;" placeholder="Propriedades anômalas..."></textarea>
-            </div>
-
-            <div>
-                <label style="font-size: 11px; color: var(--primary);">Observações / Adendos *</label>
-                <textarea id="doc-obs" class="form-control" style="height: 70px;" placeholder="Testes ou incidentes..."></textarea>
-            </div>
-
-            <button class="btn" onclick="saveDocument()" style="margin-top: 10px;">ENVIAR PARA AVALIAÇÃO DO O5</button>
-        </div>
-    </div>
-
-    <!-- MODAL DE GESTÃO DE PESSOAL (ADMIN) -->
-    <div id="admin-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 600px;">
-            <button class="close-modal" onclick="closeModal('admin-modal')"><i class="fa-solid fa-xmark"></i></button>
-            <div class="classified-header" style="margin-bottom: 15px;">
-                <h1>GESTÃO DE PESSOAL E CREDENCIAIS</h1>
-            </div>
-
-            <div style="margin-bottom: 20px; background: #000; padding: 15px; border: 1px solid var(--border);">
-                <h3 style="font-size: 13px; color: var(--primary); margin-bottom: 10px;">CADASTRAR NOVO OPERADOR</h3>
-                <input type="text" id="new-user" class="form-control" placeholder="Nome de usuário" style="margin-bottom: 10px;">
-                <input type="password" id="new-pass" class="form-control" placeholder="Senha inicial" style="margin-bottom: 10px;">
-                <button class="btn" onclick="adminCreateUser()">CRIAR OPERADOR</button>
-            </div>
-
-            <h3 style="font-size: 13px; color: var(--primary); margin-bottom: 10px;">LISTA DE OPERADORES REGISTRADOS</h3>
-            <div id="user-management-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
-                <!-- Preenchido via Script -->
-            </div>
-        </div>
-    </div>
-
-    <!-- SCRIPT DE LÓGICA E CONEXÃO COM A API -->
-    <script>
-        let isLogged = false;
-        let currentUser = "";
-        let currentRole = "";
-        let activeDocId = null;
-        let globalDocs = [];
-        
-        let registeredUsers = [
-            { username: "admin", password: "OFICINA DO CAOS", role: "O5", blocked: false },
-            { username: "diretor", password: "123", role: "O5", blocked: false },
-            { username: "cientista1", password: "123", role: "Nível 2", blocked: false } 
-        ];
-
-        // Função para carregar documentos reais do banco de dados (API)
-        async function loadDocs() {
-            try {
-                const res = await fetch('/api/docs');
-                if(res.ok) {
-                    globalDocs = await res.json();
-                    renderDocs('Todos');
-                } else {
-                    console.error("Erro ao carregar documentos da API.");
-                }
-            } catch(err) {
-                console.error("Erro de conexão com o servidor:", err);
-            }
-        }
-
-        // Função de login integrada com a sua API/Backend
-        async function validateGateLogin() {
-            const u = document.getElementById('gate-user').value.trim().toLowerCase();
-            const p = document.getElementById('gate-pass').value;
-
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: u, password: p })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    isLogged = true; 
-                    currentUser = data.username; 
-                    currentRole = data.role;
-                    
-                    document.getElementById('entry-screen').style.opacity = '0';
-                    setTimeout(() => document.getElementById('entry-screen').style.display = 'none', 500);
-                    
-                    const introScreen = document.getElementById('intro-screen');
-                    const introLogo = document.getElementById('intro-logo');
-                    introScreen.style.display = 'flex';
-                    introLogo.classList.add('logo-spinning');
-                    
-                    // Carrega os documentos do banco antes de liberar a tela
-                    await loadDocs();
-
-                    setTimeout(() => {
-                        document.getElementById('intro-text').innerText = "ACESSO AUTORIZADO.";
-                        introLogo.classList.remove('logo-spinning');
-                        
-                        setTimeout(() => {
-                            introScreen.style.opacity = '0'; 
-                            setTimeout(() => introScreen.style.display = 'none', 500);
-                            
-                            document.getElementById('auth-status-ui').innerHTML = `<span>OPE: <strong>${currentUser.toUpperCase()}</strong> | CARGO: <strong>${currentRole.toUpperCase()}</strong></span> <button class="btn" onclick="location.reload()">SAIR</button>`;
-                            document.getElementById('admin-actions').style.display = 'flex'; 
-                            
-                            if(currentRole !== "O5") {
-                                document.getElementById('admin-actions').children[0].style.display = 'none';
-                            }
-                        }, 1200);
-                    }, 2000);
-                } else {
-                    if(data.error === 'Usuário bloqueado pelo Comando O5.') {
-                        document.getElementById('entry-screen').style.display = 'none';
-                        document.getElementById('blocked-screen').style.display = 'flex';
-                    } else {
-                        alert(data.error || "Credencial inválida.");
-                    }
-                }
-            } catch (err) {
-                alert("Erro ao conectar com o servidor.");
-            }
-        }
-
-        function renderDocs(filter) {
-            const container = document.getElementById('docs-container');
-            container.innerHTML = '';
-            let filtered = filter === 'Todos' ? globalDocs : globalDocs.filter(d => d.class === filter);
-            
-            if(filtered.length === 0) {
-                container.innerHTML = `<div style="font-family: var(--font-mono); color: #666; font-size: 13px;">Nenhum registro encontrado nesta categoria.</div>`;
-                return;
-            }
-
-            filtered.forEach(doc => {
-                let borderColor = "var(--primary)";
-                let badgeHtml = "<span class='status-badge' style='background: #eee; color: #000;'>PENDENTE</span>";
-                let displayDesc = (doc.desc_text || doc.desc || '').substring(0, 80) + '...';
-
-                if(doc.status === "approved") {
-                    borderColor = "var(--approved)";
-                    badgeHtml = "<span class='status-badge' style='background: var(--approved); color: #fff;'>APROVADO</span>";
-                } else if(doc.status === "rejected") {
-                    borderColor = "var(--rejected)";
-                    badgeHtml = "<span class='status-badge' style='background: var(--rejected); color: #fff;'>CENSURADO</span>";
-                    displayDesc = "<strong style='color:var(--rejected)'>[ DADOS EXPURGADOS PELO COMANDO O5 ]</strong>";
-                }
-
-                container.innerHTML += `
-                <div class="doc-card animated-card" onclick='openReadModal(${doc.id})' style='border-top-color: ${borderColor}'>
-                    ${badgeHtml}
-                    <div class="doc-card-title">SCP-${doc.num}</div>
-                    <div class="doc-card-class">CLASSE: ${doc.class}</div>
-                    <div class="doc-card-desc">${displayDesc}</div>
-                </div>`;
-            });
-        }
-
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        function openCreateModal() {
-            ['doc-num','doc-class','doc-image','doc-scientist','doc-companions','doc-classd','doc-desc','doc-containment','doc-obs'].forEach(id => document.getElementById(id).value = '');
-            openModal('create-modal');
-        }
-
-        // Função de salvar documentos integrada
-        function saveDocument() {
-            const num = document.getElementById('doc-num').value.trim();
-            const scpClass = document.getElementById('doc-class').value;
-            const sci = document.getElementById('doc-scientist').value.trim();
-            const comp = document.getElementById('doc-companions').value.trim();
-            const dclass = document.getElementById('doc-classd').value.trim();
-            const desc = document.getElementById('doc-desc').value.trim();
-            const cont = document.getElementById('doc-containment').value.trim();
-            const obs = document.getElementById('doc-obs').value.trim();
-            const imgInput = document.getElementById('doc-image');
-
-            if(!num || !scpClass || !sci || !dclass || !desc || !cont || !obs) {
-                alert("Erro: Preencha todos os campos obrigatórios (*)."); return;
-            }
-
-            const newDoc = { 
-                num, class: scpClass, sci, comp, dclass, desc, cont, obs, image: null,
-                creator: currentUser, status: "pending", reject_reason: ""
-            };
-
-            if(imgInput.files && imgInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    newDoc.image = e.target.result;
-                    sendDocToApi(newDoc);
-                };
-                reader.readAsDataURL(imgInput.files[0]);
-            } else {
-                sendDocToApi(newDoc);
-            }
-        }
-
-        async function sendDocToApi(doc) {
-            try {
-                const res = await fetch('/api/docs', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(doc)
-                });
-                if(res.ok) {
-                    alert(`Registro SCP-${doc.num} arquivado e aguardando avaliação do Comando O5.`);
-                    closeModal('create-modal');
-                    loadDocs(); 
-                } else {
-                    alert("Erro ao salvar no banco de dados central.");
-                }
-            } catch(err) {
-                console.error(err);
-                alert("Erro de conexão com o servidor.");
-            }
-        }
-
-        function openReadModal(id) {
-            const doc = globalDocs.find(d => d.id == id);
-            if(!doc) return;
-            activeDocId = doc.id;
-
-            const isCreator = (doc.creator === currentUser);
-            const isAdmin = (currentRole === "O5");
-            
-            document.getElementById('side-panel').style.display = 'none';
-            document.getElementById('eval-panel').style.display = 'none';
-            document.getElementById('read-img-box').style.display = 'none';
-            
-            document.getElementById('read-num').innerText = doc.num;
-            document.getElementById('read-class').innerText = doc.class;
-            document.getElementById('read-sci').innerText = doc.sci;
-            document.getElementById('read-dclass').innerText = doc.dclass;
-            
-            if(doc.comp) {
-                document.getElementById('box-companions').style.display = 'block';
-                document.getElementById('read-comp').innerText = doc.comp;
-            } else {
-                document.getElementById('box-companions').style.display = 'none';
-            }
-
-            const statusLine = document.getElementById('read-status-line');
-            if(doc.status === 'approved') statusLine.style.backgroundColor = "var(--approved)";
-            else if(doc.status === 'rejected') statusLine.style.backgroundColor = "var(--rejected)";
-            else statusLine.style.backgroundColor = "transparent"; 
-            
-            const isCensoredForMe = (doc.status === "rejected" && !isCreator && !isAdmin);
-
-            const descriptionText = doc.desc_text || doc.desc || '';
-
-            if(isCensoredForMe) {
-                document.getElementById('read-cont').innerHTML = "<div class='censored-block'>[ ACESSO NEGADO - DADOS EXPURGADOS ]</div>";
-                document.getElementById('read-desc').innerHTML = "<div class='censored-block'>[ DADOS CENSURADOS SOB ORDEM DO COMANDO O5 ]</div>";
-                document.getElementById('read-obs').innerHTML = "<div class='censored-block'>[ EXPURGADO ]</div>";
-            } else {
-                document.getElementById('read-cont').innerText = doc.cont;
-                document.getElementById('read-desc').innerText = descriptionText;
-                document.getElementById('read-obs').innerText = doc.obs;
-                
-                if(doc.image) {
-                    document.getElementById('read-img-box').style.display = 'block';
-                    document.getElementById('read-img').src = doc.image;
-                }
-
-                if(doc.status === "rejected") {
-                    document.getElementById('side-panel').style.display = 'flex';
-                    document.getElementById('side-reject-reason').innerText = doc.reject_reason || doc.rejectReason || "Motivo não especificado.";
-                }
-            }
-
-            if(isAdmin && doc.status !== 'approved') {
-                document.getElementById('eval-panel').style.display = 'block';
-                document.getElementById('eval-reason').value = doc.reject_reason || doc.rejectReason || '';
-                
-                document.getElementById('btn-approve').onclick = () => { processEvaluation(doc.id, 'approved'); };
-                document.getElementById('btn-reject').onclick = () => { processEvaluation(doc.id, 'rejected'); };
-            }
-
-            openModal('read-modal');
-        }
-
-        // Única função de avaliação correta apontando para /eval
-        async function processEvaluation(id, newStatus) {
-            const doc = globalDocs.find(d => d.id == id);
-            if(!doc) return;
-
-            let reason = "";
-            if(newStatus === 'rejected') {
-                reason = document.getElementById('eval-reason').value.trim();
-                if(!reason) { alert("Para rejeitar, é obrigatório preencher o motivo do expurgo."); return; }
-            }
-
-            try {
-                const res = await fetch(`/api/docs/${id}/eval`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: newStatus, rejectReason: reason })
-                });
-
-                if(res.ok) {
-                    alert(newStatus === 'approved' ? "Documento APROVADO com sucesso." : "Documento REJEITADO e CENSURADO para a base.");
-                    closeModal('read-modal');
-                    loadDocs(); 
-                } else {
-                    alert("Erro ao atualizar o status na API.");
-                }
-            } catch(err) {
-                console.error(err);
-                alert("Erro de comunicação com o servidor.");
-            }
-        }
-
-        // Modal de gestão de pessoal
-        function openAdminModal() {
-            renderAdminUserList();
-            openModal('admin-modal');
-        }
-
-        function adminCreateUser() {
-            const u = document.getElementById('new-user').value.trim();
-            const p = document.getElementById('new-pass').value;
-            if(!u || !p) return alert("Preencha ID e Senha.");
-            if(registeredUsers.find(x => x.username === u.toLowerCase())) return alert("Usuário já existe.");
-            
-            registeredUsers.push({ username: u.toLowerCase(), password: p, role: "Nível 1", blocked: false });
-            alert(`Operador ${u} criado com sucesso.`);
-            
-            document.getElementById('new-user').value = '';
-            document.getElementById('new-pass').value = '';
-            renderAdminUserList();
-        }
-
-        function renderAdminUserList() {
-            const list = document.getElementById('user-management-list');
-            list.innerHTML = '';
-            
-            registeredUsers.forEach(u => {
-                const isMe = u.username === currentUser;
-                const roles = ["Nível 1", "Nível 2", "Nível 3", "Nível 4", "Nível 5", "O5"];
-                let selectOptions = '';
-                roles.forEach(r => {
-                    selectOptions += `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`;
-                });
-
-                list.innerHTML += `
-                    <div class="user-mgmt-item ${u.blocked ? 'blocked' : ''}">
-                        <div style="font-weight: 900; width: 120px;">${u.username.toUpperCase()}</div>
-                        
-                        <div style="display:flex; gap: 10px; align-items:center;">
-                            <select class="form-control" style="width: auto; padding: 5px; margin:0;" onchange="changeUserRole('${u.username}', this.value)" ${isMe ? 'disabled' : ''}>
-                                ${selectOptions}
-                            </select>
-                            
-                            <button class="btn ${u.blocked ? 'btn-success' : 'btn-danger'}" style="padding: 5px 10px;" onclick="toggleUserBlock('${u.username}')" ${isMe ? 'disabled' : ''}>
-                                ${u.blocked ? '<i class="fa-solid fa-unlock"></i> Restaurar' : '<i class="fa-solid fa-ban"></i> Revogar'}
-                            </button>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group" style="flex: 0.5;">
+                        <label>SCP - [Número] <span class="required-mark">*</span></label>
+                        <div style="display:flex; align-items:center;">
+                            <span style="padding:10px; background:var(--gray-subtle); border:1px solid var(--border); border-right:none; font-family:var(--font-mono); font-weight:bold;">SCP-</span>
+                            <input type="number" id="doc-num" class="form-control" placeholder="Ex: 096">
                         </div>
                     </div>
-                `;
+                    <div class="form-group">
+                        <label>Classe do Objeto <span class="required-mark">*</span></label>
+                        <select id="doc-class" class="form-control">
+                            <option value="">Selecione...</option>
+                            <option value="Safe">Safe</option>
+                            <option value="Euclid">Euclid</option>
+                            <option value="Keter">Keter</option>
+                            <option value="Thaumiel">Thaumiel</option>
+                            <option value="Apollyon">Apollyon</option>
+                            <option value="Anômalo">Objeto Anômalo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Foto do SCP (Opcional)</label>
+                        <input type="file" id="doc-image" class="form-control" accept="image/*" style="padding: 7px;">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cientista Responsável <span class="required-mark">*</span></label>
+                        <input type="text" id="doc-scientist" class="form-control" placeholder="Ex: Dr. Jack Bright">
+                    </div>
+                    <div class="form-group">
+                        <label>Acompanhantes (Opcional)</label>
+                        <input type="text" id="doc-companions" class="form-control" placeholder="Nomes dos assistentes...">
+                    </div>
+                    <div class="form-group">
+                        <label>Classes D Utilizados <span class="required-mark">*</span></label>
+                        <input type="text" id="doc-classd" class="form-control" placeholder="Ex: D-9341, D-8221 ou 'Nenhum'">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Descrição da Anomalia <span class="required-mark">*</span></label>
+                    <textarea id="doc-desc" class="form-control" style="min-height: 120px;" placeholder="Detalhe a aparência, comportamento e efeitos anômalos..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Método de Contenção (Procedimentos Especiais) <span class="required-mark">*</span></label>
+                    <textarea id="doc-containment" class="form-control" style="min-height: 100px;" placeholder="Como manter a entidade/objeto contido em segurança..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Observação / Adendos <span class="required-mark">*</span></label>
+                    <textarea id="doc-obs" class="form-control" placeholder="Notas do pesquisador, incidentes passados ou informações críticas extras..."></textarea>
+                </div>
+
+                <button class="btn btn-fill" style="width:100%; justify-content: center; padding: 15px;" onclick="saveDocument()">
+                    <i class="fa-solid fa-paper-plane"></i> ENVIAR PARA AVALIAÇÃO DO COMANDO
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="read-modal">
+        <div class="modal-box" style="width: 950px;">
+            <div id="read-status-line" class="doc-status-line"></div>
+            <div class="modal-header">
+                <h3>VISUALIZADOR DE ARQUIVOS CONFIDENCIAIS</h3>
+                <i class="fa-solid fa-xmark" style="cursor:pointer; font-size: 18px;" onclick="closeModal('read-modal')"></i>
+            </div>
+            
+            <div class="modal-body scp-document-reader">
+                
+                <div class="scp-main-content">
+                    <div class="scp-header-block">
+                        <h1>FUNDAÇÃO SCP</h1>
+                        <div style="font-size: 12px; letter-spacing: 1px; font-weight: bold;">DEP. CIENTÍFICO - ARQUIVO SEGREGADO</div>
+                    </div>
+                    
+                    <div class="scp-image-container" id="read-img-box" style="display:none;">
+                        <img id="read-img" src="" alt="Imagem do SCP">
+                        <span id="read-img-caption">FOTO ARQUIVADA DO ITEM</span>
+                    </div>
+
+                    <div class="scp-section"><strong>Item #:</strong> SCP-<span id="read-num"></span></div>
+                    <div class="scp-section"><strong>Classe do Objeto:</strong> <span id="read-class"></span></div>
+                    <div class="scp-section"><strong>Cientista Responsável:</strong> <span id="read-sci"></span></div>
+                    
+                    <div class="scp-section" id="box-companions" style="display:none;">
+                        <strong>Acompanhantes:</strong> <span id="read-comp"></span>
+                    </div>
+                    
+                    <div class="scp-section"><strong>Classes D Envolvidos:</strong> <span id="read-dclass"></span></div>
+
+                    <div style="margin: 25px 0; border-top: 1px dashed #000;"></div>
+
+                    <div class="scp-section">
+                        <strong>Método de Contenção:</strong><br>
+                        <div id="read-cont" style="white-space: pre-wrap; margin-top: 5px;"></div>
+                    </div>
+
+                    <div class="scp-section">
+                        <strong>Descrição:</strong><br>
+                        <div id="read-desc" style="white-space: pre-wrap; margin-top: 5px;"></div>
+                    </div>
+
+                    <div class="scp-section" style="background: #f9f9f9; padding: 15px; border-left: 4px solid #000; margin-top: 20px;">
+                        <strong>Observação do Pesquisador:</strong><br>
+                        <div id="read-obs" style="white-space: pre-wrap; font-style: italic; margin-top: 5px;"></div>
+                    </div>
+                    
+                    <div class="admin-eval-box" id="eval-panel">
+                        <h4><i class="fa-solid fa-gavel"></i> AVALIAÇÃO OFICIAL (O5)</h4>
+                        <div class="form-group">
+                            <label>Motivo em caso de Rejeição / Expurgo:</label>
+                            <input type="text" id="eval-reason" class="form-control" placeholder="Descreva o motivo da censura...">
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn btn-success" id="btn-approve"><i class="fa-solid fa-check"></i> Aprovar Arquivo</button>
+                            <button class="btn btn-danger" id="btn-reject"><i class="fa-solid fa-ban"></i> Rejeitar & Censurar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scp-side-panel" id="side-panel">
+                    <div class="rejection-note-box">
+                        <h4><i class="fa-solid fa-triangle-exclamation"></i> DOCUMENTO REJEITADO</h4>
+                        <strong>Nota do Comando O5:</strong><br>
+                        <span id="side-reject-reason" style="display: block; margin-top: 5px; font-style: italic;"></span>
+                        <div style="margin-top: 15px; font-size: 10px; color: #666;">
+                            O conteúdo deste documento foi censurado para o restante da equipe da Fundação. Apenas você e o Comando têm acesso a esta nota.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="admin-modal">
+        <div class="modal-box" style="width: 700px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-server"></i> COMANDO O5 - GESTÃO DE PESSOAL</h3>
+                <i class="fa-solid fa-xmark" style="cursor:pointer; font-size: 18px;" onclick="closeModal('admin-modal')"></i>
+            </div>
+            <div class="modal-body">
+                
+                <h4 style="font-family: var(--font-mono); margin-bottom: 10px; font-size: 14px;">NOVO CREDENCIAMENTO</h4>
+                <div style="background: var(--gray-subtle); padding: 15px; border: 1px solid var(--border); margin-bottom: 30px; display: flex; gap: 10px; border-radius: 2px;">
+                    <input type="text" id="new-user" class="form-control" placeholder="ID de Usuário">
+                    <input type="password" id="new-pass" class="form-control" placeholder="Senha">
+                    <button class="btn btn-fill" onclick="adminCreateUser()">Criar</button>
+                </div>
+
+                <h4 style="font-family: var(--font-mono); margin-bottom: 10px; font-size: 14px;">PESSOAL ATIVO / REVOGAÇÕES</h4>
+                <div id="user-management-list" style="max-height: 250px; overflow-y: auto; padding-right: 5px;"></div>
+
+            </div>
+        </div>
+    </div>
+
+<script>
+    let isLogged = false;
+    let currentUser = "";
+    let currentRole = "";
+    let activeDocId = null;
+    let globalDocs = [];
+    
+    let registeredUsers = [
+        { username: "admin", password: "OFICINA DO CAOS", role: "O5", blocked: false },
+        { username: "diretor", password: "123", role: "O5", blocked: false },
+        { username: "cientista1", password: "123", role: "Nível 2", blocked: false } 
+    ];
+
+    // Função para carregar documentos da API
+    async function loadDocs() {
+        try {
+            const res = await fetch('/api/docs');
+            const data = await res.json();
+            if(Array.isArray(data)) {
+                globalDocs = data;
+            }
+        } catch (err) {
+            console.error("Erro ao carregar documentos da API:", err);
+        }
+    }
+
+    // Função de login integrada com a API
+    async function validateGateLogin() {
+        const u = document.getElementById('gate-user').value.trim().toLowerCase();
+        const p = document.getElementById('gate-pass').value;
+
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p })
             });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                isLogged = true; 
+                currentUser = data.username; 
+                currentRole = data.role;
+                
+                document.getElementById('entry-screen').style.opacity = '0';
+                setTimeout(() => document.getElementById('entry-screen').style.display = 'none', 500);
+                
+                const introScreen = document.getElementById('intro-screen');
+                const introLogo = document.getElementById('intro-logo');
+                introScreen.style.display = 'flex';
+                introLogo.classList.add('logo-spinning');
+                
+                // Carrega os documentos do banco antes de liberar a tela
+                await loadDocs();
+
+                setTimeout(() => {
+                    document.getElementById('intro-text').innerText = "ACESSO AUTORIZADO.";
+                    introLogo.classList.remove('logo-spinning');
+                    
+                    setTimeout(() => {
+                        introScreen.style.opacity = '0'; 
+                        setTimeout(() => introScreen.style.display = 'none', 500);
+                        
+                        document.getElementById('auth-status-ui').innerHTML = `<span>OPE: <strong>${currentUser.toUpperCase()}</strong> | CARGO: <strong>${currentRole.toUpperCase()}</strong></span> <button class="btn" onclick="location.reload()">SAIR</button>`;
+                        document.getElementById('admin-actions').style.display = 'flex'; 
+                        
+                        if(currentRole !== "O5") {
+                            document.getElementById('admin-actions').children[0].style.display = 'none';
+                        }
+                        
+                        renderDocs('Todos');
+                    }, 1200);
+                }, 2000);
+            } else {
+                if(data.error === 'Usuário bloqueado pelo Comando O5.') {
+                    document.getElementById('entry-screen').style.display = 'none';
+                    document.getElementById('blocked-screen').style.display = 'flex';
+                } else {
+                    alert(data.error || "Credencial inválida.");
+                }
+            }
+        } catch (err) {
+            alert("Erro ao conectar com o servidor.");
+        }
+    }
+
+    function renderDocs(filter) {
+        const container = document.getElementById('docs-container');
+        container.innerHTML = '';
+        let filtered = filter === 'Todos' ? globalDocs : globalDocs.filter(d => d.class === filter);
+        
+        if(filtered.length === 0) {
+            container.innerHTML = `<div style="font-family: var(--font-mono); color: #666; font-size: 13px;">Nenhum registro encontrado nesta categoria.</div>`;
+            return;
         }
 
-        function changeUserRole(username, newRole) {
-            const u = registeredUsers.find(x => x.username === username);
-            if(u) u.role = newRole;
+        filtered.forEach(doc => {
+            let borderColor = "var(--primary)";
+            let badgeHtml = "<span class='status-badge' style='background: #eee; color: #000;'>PENDENTE</span>";
+            let displayDesc = (doc.desc || '').substring(0, 80) + '...';
+
+            if(doc.status === "approved") {
+                borderColor = "var(--approved)";
+                badgeHtml = "<span class='status-badge' style='background: var(--approved); color: #fff;'>APROVADO</span>";
+            } else if(doc.status === "rejected") {
+                borderColor = "var(--rejected)";
+                badgeHtml = "<span class='status-badge' style='background: var(--rejected); color: #fff;'>CENSURADO</span>";
+                displayDesc = "<strong style='color:var(--rejected)'>[ DADOS EXPURGADOS PELO COMANDO O5 ]</strong>";
+            }
+
+            container.innerHTML += `
+            <div class="doc-card animated-card" onclick='openReadModal(${doc.id})' style='border-top-color: ${borderColor}'>
+                ${badgeHtml}
+                <div class="doc-card-title">SCP-${doc.num}</div>
+                <div class="doc-card-class">CLASSE: ${doc.class}</div>
+                <div class="doc-card-desc">${displayDesc}</div>
+            </div>`;
+        });
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function openCreateModal() {
+        ['doc-num','doc-class','doc-image','doc-scientist','doc-companions','doc-classd','doc-desc','doc-containment','doc-obs'].forEach(id => document.getElementById(id).value = '');
+        openModal('create-modal');
+    }
+
+    function saveDocument() {
+        const num = document.getElementById('doc-num').value.trim();
+        const scpClass = document.getElementById('doc-class').value;
+        const sci = document.getElementById('doc-scientist').value.trim();
+        const comp = document.getElementById('doc-companions').value.trim();
+        const dclass = document.getElementById('doc-classd').value.trim();
+        const desc = document.getElementById('doc-desc').value.trim();
+        const cont = document.getElementById('doc-containment').value.trim();
+        const obs = document.getElementById('doc-obs').value.trim();
+        const imgInput = document.getElementById('doc-image');
+
+        if(!num || !scpClass || !sci || !dclass || !desc || !cont || !obs) {
+            alert("Erro: Preencha todos os campos obrigatórios (*)."); return;
         }
 
-        function toggleUserBlock(username) {
-            const u = registeredUsers.find(x => x.username === username);
-            if(u) {
-                u.blocked = !u.blocked;
-                renderAdminUserList();
+        const newDoc = { 
+            num, class: scpClass, sci, comp, dclass, desc, cont, obs, image: null,
+            creator: currentUser, status: "pending", rejectReason: ""
+        };
+
+        if(imgInput.files && imgInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                newDoc.image = e.target.result;
+                sendDocToApi(newDoc);
+            };
+            reader.readAsDataURL(imgInput.files[0]);
+        } else {
+            sendDocToApi(newDoc);
+        }
+    }
+
+    async function sendDocToApi(doc) {
+        try {
+            const res = await fetch('/api/docs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(doc)
+            });
+            if(res.ok) {
+                alert(`Registro SCP-${doc.num} arquivado e aguardando avaliação do Comando O5.`);
+                closeModal('create-modal');
+                await loadDocs();
+                renderDocs('Todos');
+            } else {
+                alert("Erro ao salvar no banco de dados central.");
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Erro de conexão com o servidor.");
+        }
+    }
+
+    function openReadModal(id) {
+        const doc = globalDocs.find(d => d.id == id);
+        if(!doc) return;
+        activeDocId = doc.id;
+
+        const isCreator = (doc.creator === currentUser);
+        const isAdmin = (currentRole === "O5");
+        
+        document.getElementById('side-panel').style.display = 'none';
+        document.getElementById('eval-panel').style.display = 'none';
+        document.getElementById('read-img-box').style.display = 'none';
+        
+        document.getElementById('read-num').innerText = doc.num;
+        document.getElementById('read-class').innerText = doc.class;
+        document.getElementById('read-sci').innerText = doc.sci;
+        document.getElementById('read-dclass').innerText = doc.dclass;
+        
+        if(doc.comp) {
+            document.getElementById('box-companions').style.display = 'block';
+            document.getElementById('read-comp').innerText = doc.comp;
+        } else {
+            document.getElementById('box-companions').style.display = 'none';
+        }
+
+        const statusLine = document.getElementById('read-status-line');
+        if(doc.status === 'approved') statusLine.style.backgroundColor = "var(--approved)";
+        else if(doc.status === 'rejected') statusLine.style.backgroundColor = "var(--rejected)";
+        else statusLine.style.backgroundColor = "transparent"; 
+        
+        const isCensoredForMe = (doc.status === "rejected" && !isCreator && !isAdmin);
+
+        if(isCensoredForMe) {
+            document.getElementById('read-cont').innerHTML = "<div class='censored-block'>[ ACESSO NEGADO - DADOS EXPURGADOS ]</div>";
+            document.getElementById('read-desc').innerHTML = "<div class='censored-block'>[ DADOS CENSURADOS SOB ORDEM DO COMANDO O5 ]</div>";
+            document.getElementById('read-obs').innerHTML = "<div class='censored-block'>[ EXPURGADO ]</div>";
+        } else {
+            document.getElementById('read-cont').innerText = doc.cont;
+            document.getElementById('read-desc').innerText = doc.desc;
+            document.getElementById('read-obs').innerText = doc.obs;
+            
+            if(doc.image) {
+                document.getElementById('read-img-box').style.display = 'block';
+                document.getElementById('read-img').src = doc.image;
+            }
+
+            if(doc.status === "rejected") {
+                document.getElementById('side-panel').style.display = 'flex';
+                document.getElementById('side-reject-reason').innerText = doc.rejectReason || "Motivo não especificado.";
             }
         }
-    </script>
+
+        if(isAdmin && doc.status !== 'approved') {
+            document.getElementById('eval-panel').style.display = 'block';
+            document.getElementById('eval-reason').value = doc.rejectReason || '';
+            
+            document.getElementById('btn-approve').onclick = () => { processEvaluation(doc.id, 'approved'); };
+            document.getElementById('btn-reject').onclick = () => { processEvaluation(doc.id, 'rejected'); };
+        }
+
+        openModal('read-modal');
+    }
+
+    async function processEvaluation(id, newStatus) {
+        const doc = globalDocs.find(d => d.id == id);
+        if(!doc) return;
+
+        let reason = "";
+        if(newStatus === 'rejected') {
+            reason = document.getElementById('eval-reason').value.trim();
+            if(!reason) { alert("Para rejeitar, é obrigatório preencher o motivo do expurgo."); return; }
+            doc.rejectReason = reason;
+        }
+
+        try {
+            const res = await fetch(`/api/docs/${id}/eval`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus, rejectReason: reason })
+            });
+
+            if(res.ok) {
+                alert(newStatus === 'approved' ? "Documento APROVADO com sucesso." : "Documento REJEITADO e CENSURADO para a base.");
+                closeModal('read-modal');
+                await loadDocs();
+                renderDocs('Todos'); 
+            } else {
+                alert("Erro ao atualizar o status na API.");
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Erro de comunicação com o servidor.");
+        }
+    }
+
+    function openAdminModal() {
+        renderAdminUserList();
+        openModal('admin-modal');
+    }
+
+    function adminCreateUser() {
+        const u = document.getElementById('new-user').value.trim();
+        const p = document.getElementById('new-pass').value;
+        if(!u || !p) return alert("Preencha ID e Senha.");
+        if(registeredUsers.find(x => x.username === u.toLowerCase())) return alert("Usuário já existe.");
+        
+        registeredUsers.push({ username: u.toLowerCase(), password: p, role: "Nível 1", blocked: false });
+        alert(`Operador ${u} criado com sucesso.`);
+        
+        document.getElementById('new-user').value = '';
+        document.getElementById('new-pass').value = '';
+        renderAdminUserList();
+    }
+
+    function renderAdminUserList() {
+        const list = document.getElementById('user-management-list');
+        list.innerHTML = '';
+        
+        registeredUsers.forEach(u => {
+            const isMe = u.username === currentUser;
+            const roles = ["Nível 1", "Nível 2", "Nível 3", "Nível 4", "Nível 5", "O5"];
+            let selectOptions = '';
+            roles.forEach(r => {
+                selectOptions += `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`;
+            });
+
+            list.innerHTML += `
+                <div class="user-mgmt-item ${u.blocked ? 'blocked' : ''}">
+                    <div style="font-weight: 900; width: 120px;">${u.username.toUpperCase()}</div>
+                    
+                    <div style="display:flex; gap: 10px; align-items:center;">
+                        <select class="form-control" style="width: auto; padding: 5px; margin:0;" onchange="changeUserRole('${u.username}', this.value)" ${isMe ? 'disabled' : ''}>
+                            ${selectOptions}
+                        </select>
+                        
+                        <button class="btn ${u.blocked ? 'btn-success' : 'btn-danger'}" style="padding: 5px 10px;" onclick="toggleUserBlock('${u.username}')" ${isMe ? 'disabled' : ''}>
+                            ${u.blocked ? '<i class="fa-solid fa-unlock"></i> Restaurar' : '<i class="fa-solid fa-ban"></i> Revogar'}
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function changeUserRole(username, newRole) {
+        const u = registeredUsers.find(x => x.username === username);
+        if(u) u.role = newRole;
+    }
+
+    function toggleUserBlock(username) {
+        const u = registeredUsers.find(x => x.username === username);
+        if(u) {
+            u.blocked = !u.blocked;
+            renderAdminUserList();
+        }
+    }
+</script>
 </body>
 </html>

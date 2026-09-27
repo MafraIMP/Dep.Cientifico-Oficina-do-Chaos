@@ -7,8 +7,9 @@ require('dotenv').config();
 
 const app = express();
 
-// Configurações de Middleware
-app.use(express.json({ limit: '10mb' }));
+// Configurações de Middleware com aumento de limite para aceitar imagens em Base64 com segurança
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 
 // Servir a pasta public estaticamente
@@ -62,7 +63,7 @@ async function initDB() {
     }
     console.log('>> Banco de dados conectado e tabelas verificadas com sucesso!');
   } catch (err) {
-    console.error('Erro ao inicializar o banco de dados:', err);
+    console.error('Erro fatal ao inicializar o banco de dados:', err);
   }
 }
 initDB();
@@ -77,6 +78,7 @@ app.get('/api/docs', async (req, res) => {
     const result = await pool.query('SELECT * FROM documents ORDER BY id DESC');
     res.json(result.rows);
   } catch (err) {
+    console.error('Erro ao buscar documentos:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -85,14 +87,34 @@ app.get('/api/docs', async (req, res) => {
 app.post('/api/docs', async (req, res) => {
   try {
     const { num, class: objClass, threat, sci, comp, dclass, cont, desc, obs, image, creator } = req.body;
+    
+    // Validação básica de campos obrigatórios no servidor
+    if (!num || !objClass || !sci || !dclass || !cont || !desc || !obs || !creator) {
+      return res.status(400).json({ error: 'Campos obrigatórios em falta no envio do documento.' });
+    }
+
     const query = `
       INSERT INTO documents (num, class, threat, sci, comp, dclass, cont, desc_text, obs, image, creator, status, reject_reason)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending', '') RETURNING *;
     `;
-    const values = [num, objClass, threat || 'Não Especificada', sci, comp, dclass, cont, desc, obs, image, creator];
+    const values = [
+      num, 
+      objClass, 
+      threat || 'Não Especificada', 
+      sci, 
+      comp || '', 
+      dclass, 
+      cont, 
+      desc, 
+      obs, 
+      image || null, 
+      creator
+    ];
+
     const newDoc = await pool.query(query, values);
-    res.json(newDoc.rows[0]);
+    res.status(201).json(newDoc.rows[0]);
   } catch (err) {
+    console.error('Erro ao inserir documento no PostgreSQL:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -104,8 +126,14 @@ app.put('/api/docs/:id/eval', async (req, res) => {
     const { status, rejectReason } = req.body;
     const query = 'UPDATE documents SET status = $1, reject_reason = $2 WHERE id = $3 RETURNING *;';
     const updated = await pool.query(query, [status, rejectReason || '', id]);
+    
+    if (updated.rows.length === 0) {
+      return res.status(404).json({ error: 'Documento não encontrado para avaliação.' });
+    }
+
     res.json(updated.rows[0]);
   } catch (err) {
+    console.error('Erro ao avaliar documento:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -123,6 +151,7 @@ app.delete('/api/docs/:id', async (req, res) => {
     
     res.json({ message: 'Documento deletado com sucesso.', doc: deleted.rows[0] });
   } catch (err) {
+    console.error('Erro ao deletar documento:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -137,6 +166,7 @@ app.get('/api/users', async (req, res) => {
     const result = await pool.query('SELECT id, username, role, blocked FROM users');
     res.json(result.rows);
   } catch (err) {
+    console.error('Erro ao listar usuários:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -169,6 +199,7 @@ app.post('/api/users', async (req, res) => {
     
     res.status(201).json(newUser.rows[0]);
   } catch (err) {
+    console.error('Erro ao criar usuário:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -177,7 +208,7 @@ app.post('/api/users', async (req, res) => {
 app.put('/api/users/:username', async (req, res) => {
   try {
     const { username } = req.params;
-    const { role, blocked } = req.body;
+    const { role, blocked }++req.body; // mantendo segurança abaixo
 
     const targetUser = await pool.query('SELECT * FROM users WHERE username = $1', [username.toLowerCase()]);
     if (targetUser.rows.length === 0) {
@@ -185,14 +216,15 @@ app.put('/api/users/:username', async (req, res) => {
     }
 
     const current = targetUser.rows[0];
-    const newRole = role !== undefined ? role : current.role;
-    const newBlocked = blocked !== undefined ? blocked : current.blocked;
+    const newRole = req.body.role !== undefined ? req.body.role : current.role;
+    const newBlocked = req.body.blocked !== undefined ? req.body.blocked : current.blocked;
 
     const query = 'UPDATE users SET role = $1, blocked = $2 WHERE username = $3 RETURNING id, username, role, blocked;';
     const updated = await pool.query(query, [newRole, newBlocked, username.toLowerCase()]);
 
     res.json(updated.rows[0]);
   } catch (err) {
+    console.error('Erro ao atualizar usuário:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -201,7 +233,11 @@ app.put('/api/users/:username', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    const userResult = await pool.query('SELECT * FROM users WHERE username = $1', [username.toLowerCase()]);
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Preencha usuário e senha.' });
+    }
+
+    const userResult = await pool.query('SELECT * FROM users WHERE username = $1', [username.trim().toLowerCase()]);
     
     if (userResult.rows.length === 0) {
       return res.status(401).json({ error: 'Credencial inválida.' });
@@ -219,6 +255,7 @@ app.post('/api/login', async (req, res) => {
 
     res.json({ username: user.username, role: user.role, blocked: user.blocked });
   } catch (err) {
+    console.error('Erro no login:', err);
     res.status(500).json({ error: err.message });
   }
 });

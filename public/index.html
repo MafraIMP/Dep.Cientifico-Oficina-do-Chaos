@@ -372,7 +372,6 @@
     let currentUser = "";
     let currentRole = "";
     let activeDocId = null;
-    
     let globalDocs = [];
     
     let registeredUsers = [
@@ -381,63 +380,76 @@
         { username: "cientista1", password: "123", role: "Nível 2", blocked: false } 
     ];
 
-    async function loadDocsFromApi() {
+    // Função para carregar documentos reais do banco de dados (API)
+    async function loadDocs() {
         try {
             const res = await fetch('/api/docs');
             const data = await res.json();
             if(Array.isArray(data)) {
                 globalDocs = data;
+                renderDocs('Todos');
             }
         } catch (err) {
             console.error("Erro ao carregar documentos da API:", err);
         }
     }
 
+    // Função de login integrada com a sua API/Backend
     async function validateGateLogin() {
         const u = document.getElementById('gate-user').value.trim().toLowerCase();
         const p = document.getElementById('gate-pass').value;
-        let usr = registeredUsers.find(x => x.username === u);
-        
-        if(usr && usr.password === p) {
-            if(usr.blocked) {
-                document.getElementById('entry-screen').style.display = 'none';
-                document.getElementById('blocked-screen').style.display = 'flex';
-                return;
-            }
 
-            isLogged = true; currentUser = u; currentRole = usr.role;
-            
-            document.getElementById('entry-screen').style.opacity = '0';
-            setTimeout(() => document.getElementById('entry-screen').style.display = 'none', 500);
-            
-            const introScreen = document.getElementById('intro-screen');
-            const introLogo = document.getElementById('intro-logo');
-            introScreen.style.display = 'flex';
-            introLogo.classList.add('logo-spinning');
-            
-            // Carrega os documentos do banco antes de liberar a tela
-            await loadDocsFromApi();
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p })
+            });
 
-            setTimeout(() => {
-                document.getElementById('intro-text').innerText = "ACESSO AUTORIZADO.";
-                introLogo.classList.remove('logo-spinning');
+            const data = await response.json();
+
+            if (response.ok) {
+                isLogged = true; 
+                currentUser = data.username; 
+                currentRole = data.role;
                 
+                document.getElementById('entry-screen').style.opacity = '0';
+                setTimeout(() => document.getElementById('entry-screen').style.display = 'none', 500);
+                
+                const introScreen = document.getElementById('intro-screen');
+                const introLogo = document.getElementById('intro-logo');
+                introScreen.style.display = 'flex';
+                introLogo.classList.add('logo-spinning');
+                
+                // Carrega os documentos do banco antes de liberar a tela
+                await loadDocs();
+
                 setTimeout(() => {
-                    introScreen.style.opacity = '0'; 
-                    setTimeout(() => introScreen.style.display = 'none', 500);
+                    document.getElementById('intro-text').innerText = "ACESSO AUTORIZADO.";
+                    introLogo.classList.remove('logo-spinning');
                     
-                    document.getElementById('auth-status-ui').innerHTML = `<span>OPE: <strong>${u.toUpperCase()}</strong> | CARGO: <strong>${usr.role.toUpperCase()}</strong></span> <button class="btn" onclick="location.reload()">SAIR</button>`;
-                    document.getElementById('admin-actions').style.display = 'flex'; 
-                    
-                    if(usr.role !== "O5") {
-                        document.getElementById('admin-actions').children[0].style.display = 'none';
-                    }
-                    
-                    renderDocs('Todos');
-                }, 1200);
-            }, 2000);
-        } else {
-            alert("Credencial inválida.");
+                    setTimeout(() => {
+                        introScreen.style.opacity = '0'; 
+                        setTimeout(() => introScreen.style.display = 'none', 500);
+                        
+                        document.getElementById('auth-status-ui').innerHTML = `<span>OPE: <strong>${currentUser.toUpperCase()}</strong> | CARGO: <strong>${currentRole.toUpperCase()}</strong></span> <button class="btn" onclick="location.reload()">SAIR</button>`;
+                        document.getElementById('admin-actions').style.display = 'flex'; 
+                        
+                        if(currentRole !== "O5") {
+                            document.getElementById('admin-actions').children[0].style.display = 'none';
+                        }
+                    }, 1200);
+                }, 2000);
+            } else {
+                if(data.error === 'Usuário bloqueado pelo Comando O5.') {
+                    document.getElementById('entry-screen').style.display = 'none';
+                    document.getElementById('blocked-screen').style.display = 'flex';
+                } else {
+                    alert(data.error || "Credencial inválida.");
+                }
+            }
+        } catch (err) {
+            alert("Erro ao conectar com o servidor.");
         }
     }
 
@@ -483,6 +495,7 @@
         openModal('create-modal');
     }
 
+    // Função de salvar documentos integrada
     function saveDocument() {
         const num = document.getElementById('doc-num').value.trim();
         const scpClass = document.getElementById('doc-class').value;
@@ -499,7 +512,7 @@
         }
 
         const newDoc = { 
-            id: Date.now(), num, class: scpClass, sci, comp, dclass, desc, cont, obs, image: null,
+            num, class: scpClass, sci, comp, dclass, desc, cont, obs, image: null,
             creator: currentUser, status: "pending", rejectReason: ""
         };
 
@@ -523,12 +536,11 @@
                 body: JSON.stringify(doc)
             });
             if(res.ok) {
-                globalDocs.push(doc);
-                closeModal('create-modal');
-                renderDocs('Todos');
                 alert(`Registro SCP-${doc.num} arquivado e aguardando avaliação do Comando O5.`);
+                closeModal('create-modal');
+                loadDocs(); // Recarrega direto da API para atualizar a interface com os dados reais
             } else {
-                alert("Erro ao salvar no banco de dados.");
+                alert("Erro ao salvar no banco de dados central.");
             }
         } catch(err) {
             console.error(err);
@@ -609,8 +621,6 @@
             doc.rejectReason = reason;
         }
 
-        doc.status = newStatus;
-
         try {
             const res = await fetch(`/api/docs/${id}`, {
                 method: 'PUT',
@@ -621,7 +631,7 @@
             if(res.ok) {
                 alert(newStatus === 'approved' ? "Documento APROVADO com sucesso." : "Documento REJEITADO e CENSURADO para a base.");
                 closeModal('read-modal');
-                renderDocs('Todos'); 
+                loadDocs(); // Recarrega a API para manter todos sincronizados
             } else {
                 alert("Erro ao atualizar o status na API.");
             }
@@ -631,6 +641,7 @@
         }
     }
 
+    // Modal de gestão temporário (Mantido para não quebrar a sua UI atual)
     function openAdminModal() {
         renderAdminUserList();
         openModal('admin-modal');

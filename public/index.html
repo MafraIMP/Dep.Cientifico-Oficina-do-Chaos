@@ -15,7 +15,7 @@
             --gray-subtle: #f8f9fa;
             --header-bg: #ffffff;
             --header-text: #000000;
-            --card-bg: #ffffff; /* Branco pastoso consistente */
+            --card-bg: #ffffff;
             --font-mono: 'Courier New', Courier, monospace;
             --font-sans: 'Inter', 'Segoe UI', Arial, sans-serif;
             
@@ -373,18 +373,7 @@
     let currentRole = "";
     let activeDocId = null;
     
-    let globalDocs = [
-        { 
-            id: 1, num: "173", class: "Euclid", sci: "Dr. Gears", comp: "", dclass: "D-5933",
-            cont: "Item SCP-173 deve ser mantido em um contêiner trancado a todo momento.",
-            desc: "Construído a partir de concreto e vergalhões. O objeto não pode se mover enquanto dentro de uma linha de visão.",
-            obs: "A equipe relata sons de arranhões.",
-            image: null,
-            creator: "admin", 
-            status: "approved", 
-            rejectReason: ""
-        }
-    ];
+    let globalDocs = [];
     
     let registeredUsers = [
         { username: "admin", password: "OFICINA DO CAOS", role: "O5", blocked: false },
@@ -392,7 +381,19 @@
         { username: "cientista1", password: "123", role: "Nível 2", blocked: false } 
     ];
 
-    function validateGateLogin() {
+    async function loadDocsFromApi() {
+        try {
+            const res = await fetch('/api/docs');
+            const data = await res.json();
+            if(Array.isArray(data)) {
+                globalDocs = data;
+            }
+        } catch (err) {
+            console.error("Erro ao carregar documentos da API:", err);
+        }
+    }
+
+    async function validateGateLogin() {
         const u = document.getElementById('gate-user').value.trim().toLowerCase();
         const p = document.getElementById('gate-pass').value;
         let usr = registeredUsers.find(x => x.username === u);
@@ -414,6 +415,9 @@
             introScreen.style.display = 'flex';
             introLogo.classList.add('logo-spinning');
             
+            // Carrega os documentos do banco antes de liberar a tela
+            await loadDocsFromApi();
+
             setTimeout(() => {
                 document.getElementById('intro-text').innerText = "ACESSO AUTORIZADO.";
                 introLogo.classList.remove('logo-spinning');
@@ -442,10 +446,15 @@
         container.innerHTML = '';
         let filtered = filter === 'Todos' ? globalDocs : globalDocs.filter(d => d.class === filter);
         
+        if(filtered.length === 0) {
+            container.innerHTML = `<div style="font-family: var(--font-mono); color: #666; font-size: 13px;">Nenhum registro encontrado nesta categoria.</div>`;
+            return;
+        }
+
         filtered.forEach(doc => {
             let borderColor = "var(--primary)";
             let badgeHtml = "<span class='status-badge' style='background: #eee; color: #000;'>PENDENTE</span>";
-            let displayDesc = doc.desc.substring(0, 80) + '...';
+            let displayDesc = (doc.desc || '').substring(0, 80) + '...';
 
             if(doc.status === "approved") {
                 borderColor = "var(--approved)";
@@ -498,23 +507,37 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 newDoc.image = e.target.result;
-                finalizeSave(newDoc);
+                sendDocToApi(newDoc);
             };
             reader.readAsDataURL(imgInput.files[0]);
         } else {
-            finalizeSave(newDoc);
+            sendDocToApi(newDoc);
         }
     }
 
-    function finalizeSave(doc) {
-        globalDocs.push(doc);
-        closeModal('create-modal');
-        renderDocs('Todos');
-        alert(`Registro SCP-${doc.num} arquivado e aguardando avaliação do Comando O5.`);
+    async function sendDocToApi(doc) {
+        try {
+            const res = await fetch('/api/docs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(doc)
+            });
+            if(res.ok) {
+                globalDocs.push(doc);
+                closeModal('create-modal');
+                renderDocs('Todos');
+                alert(`Registro SCP-${doc.num} arquivado e aguardando avaliação do Comando O5.`);
+            } else {
+                alert("Erro ao salvar no banco de dados.");
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Erro de conexão com o servidor.");
+        }
     }
 
     function openReadModal(id) {
-        const doc = globalDocs.find(d => d.id === id);
+        const doc = globalDocs.find(d => d.id == id);
         if(!doc) return;
         activeDocId = doc.id;
 
@@ -566,7 +589,7 @@
 
         if(isAdmin && doc.status !== 'approved') {
             document.getElementById('eval-panel').style.display = 'block';
-            document.getElementById('eval-reason').value = doc.rejectReason;
+            document.getElementById('eval-reason').value = doc.rejectReason || '';
             
             document.getElementById('btn-approve').onclick = () => { processEvaluation(doc.id, 'approved'); };
             document.getElementById('btn-reject').onclick = () => { processEvaluation(doc.id, 'rejected'); };
@@ -575,21 +598,37 @@
         openModal('read-modal');
     }
 
-    function processEvaluation(id, newStatus) {
-        const doc = globalDocs.find(d => d.id === id);
+    async function processEvaluation(id, newStatus) {
+        const doc = globalDocs.find(d => d.id == id);
         if(!doc) return;
 
+        let reason = "";
         if(newStatus === 'rejected') {
-            const reason = document.getElementById('eval-reason').value.trim();
+            reason = document.getElementById('eval-reason').value.trim();
             if(!reason) { alert("Para rejeitar, é obrigatório preencher o motivo do expurgo."); return; }
             doc.rejectReason = reason;
         }
 
         doc.status = newStatus;
-        alert(newStatus === 'approved' ? "Documento APROVADO com sucesso." : "Documento REJEITADO e CENSURADO para a base.");
-        
-        closeModal('read-modal');
-        renderDocs('Todos'); 
+
+        try {
+            const res = await fetch(`/api/docs/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus, rejectReason: reason })
+            });
+
+            if(res.ok) {
+                alert(newStatus === 'approved' ? "Documento APROVADO com sucesso." : "Documento REJEITADO e CENSURADO para a base.");
+                closeModal('read-modal');
+                renderDocs('Todos'); 
+            } else {
+                alert("Erro ao atualizar o status na API.");
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Erro de comunicação com o servidor.");
+        }
     }
 
     function openAdminModal() {

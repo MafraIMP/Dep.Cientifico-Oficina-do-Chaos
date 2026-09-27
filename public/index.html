@@ -439,19 +439,21 @@
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(100, now);
-            osc.frequency.exponentialRampToValueAtTime(1200, now + 1.2);
+            // Tom científico limpo (onda senoidal com varredura suave de alta frequência)
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, now); // Nota D5 (científica/limpa)
+            osc.frequency.exponentialRampToValueAtTime(880, now + 0.3); // Sobe suavemente
 
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.linearRampToValueAtTime(0.15, now + 1.0);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+            // Envelope de volume curto, seco e elegante (Fade-in e Fade-out rápido)
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.linearRampToValueAtTime(0.08, now + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
 
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
             osc.start(now);
-            osc.stop(now + 1.4);
+            osc.stop(now + 0.35);
         } catch(e) {}
     }
 

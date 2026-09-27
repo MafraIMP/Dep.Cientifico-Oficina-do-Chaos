@@ -49,6 +49,7 @@ async function initDB() {
         reject_reason TEXT DEFAULT ''
       );
     `);
+    await pool.query(`ALTER TABLE documents ADD COLUMN IF NOT EXISTS threat VARCHAR(255);`);
     
     // Criar usuário admin padrão se não existir
     const adminCheck = await pool.query("SELECT * FROM users WHERE username = 'admin'");

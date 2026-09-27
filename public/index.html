@@ -147,7 +147,7 @@
             position: fixed;
             bottom: 22px;
             right: 8px;
-            display: none;
+            display: flex;
             align-items: center;
             gap: 6px;
             background: rgba(255, 255, 255, 0.9);
@@ -181,8 +181,9 @@
 </head>
 <body>
 
+    <!-- Alterado para audio.mp3 conforme solicitado -->
     <audio id="bg-music" loop>
-        <source src="The Final Flash of Existence (Slowed to perfection) - hordol (youtube).mp3" type="audio/mpeg">
+        <source src="audio.mp3" type="audio/mpeg">
     </audio>
 
     <div class="music-controller" id="music-ctrl-box">
@@ -543,11 +544,15 @@
 
     function startBackgroundMusic() {
         const bgMusic = document.getElementById('bg-music');
+        const btn = document.getElementById('play-pause-btn');
         bgMusic.volume = 0.45;
         bgMusic.play().then(() => {
             document.getElementById('music-ctrl-box').style.display = 'flex';
+            btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
         }).catch(err => {
             console.log("Autoplay bloqueado pelo navegador, aguardando interação.", err);
+            document.getElementById('music-ctrl-box').style.display = 'flex';
+            btn.innerHTML = '<i class="fa-solid fa-play"></i>';
         });
     }
 

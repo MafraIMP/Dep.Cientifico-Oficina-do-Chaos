@@ -143,12 +143,11 @@
             letter-spacing: 0.5px;
         }
 
-        /* Controlador de música sutil no canto superior acima da marca d'água */
         .music-controller {
             position: fixed;
             bottom: 22px;
             right: 8px;
-            display: none; /* Revelado após o login */
+            display: none;
             align-items: center;
             gap: 6px;
             background: rgba(255, 255, 255, 0.9);
@@ -182,12 +181,10 @@
 </head>
 <body>
 
-    <!-- Áudio de Fundo (The Final Flash of Existence) -->
     <audio id="bg-music" loop>
         <source src="The Final Flash of Existence (Slowed to perfection) - hordol (youtube).mp3" type="audio/mpeg">
     </audio>
 
-    <!-- Controlador de Música Sutil -->
     <div class="music-controller" id="music-ctrl-box">
         <i class="fa-solid fa-music" style="font-size: 9px; color: #4b0082;"></i>
         <button onclick="adjustMusicVolume(-0.1)" title="Diminuir Volume"><i class="fa-solid fa-volume-low"></i></button>
@@ -456,7 +453,6 @@
         }
     }
 
-    // Efeitos sonoros aprimorados, limpos e modernos
     function playClickSound() {
         try {
             initAudio();
@@ -508,9 +504,9 @@
             const gain = audioCtx.createGain();
             
             osc.type = 'triangle';
-            osc.frequency.setValueAtTime(523.25, now); // Nota C5
-            osc.frequency.setValueAtTime(659.25, now + 0.08); // Nota E5
-            osc.frequency.setValueAtTime(783.99, now + 0.16); // Nota G5
+            osc.frequency.setValueAtTime(523.25, now);
+            osc.frequency.setValueAtTime(659.25, now + 0.08);
+            osc.frequency.setValueAtTime(783.99, now + 0.16);
 
             gain.gain.setValueAtTime(0.08, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
@@ -545,10 +541,9 @@
         } catch(e) {}
     }
 
-    // Controles de Música de Fundo
     function startBackgroundMusic() {
         const bgMusic = document.getElementById('bg-music');
-        bgMusic.volume = 0.45; // Volume inicial exato 45
+        bgMusic.volume = 0.45;
         bgMusic.play().then(() => {
             document.getElementById('music-ctrl-box').style.display = 'flex';
         }).catch(err => {
@@ -586,9 +581,6 @@
     let registeredUsers = [];
     let currentFilter = 'Todos';
 
-    // ==========================================
-    // PERSISTÊNCIA DE SESSÃO AO CARREGAR (CTRL+R)
-    // ==========================================
     window.addEventListener('DOMContentLoaded', async () => {
         const savedUser = localStorage.getItem('scp_user');
         const savedRole = localStorage.getItem('scp_role');
@@ -611,8 +603,6 @@
             await loadUsers();
             renderDocs(currentFilter);
             startLiveUpdates();
-
-            // Inicia a música ao restaurar sessão pelo Ctrl+R
             startBackgroundMusic();
         }
     });
@@ -668,7 +658,6 @@
                 currentUser = data.username; 
                 currentRole = data.role;
 
-                // Salva a sessão no navegador para resistir ao Ctrl+R
                 localStorage.setItem('scp_user', currentUser);
                 localStorage.setItem('scp_role', currentRole);
                 
@@ -700,9 +689,7 @@
                         }
                         
                         renderDocs('Todos');
-                        startLiveUpdates(); // Ativa a sincronização ao vivo
-                        
-                        // DISPARA A MÚSICA APÓS O LOGIN TOTAL CONCLUÍDO
+                        startLiveUpdates();
                         startBackgroundMusic();
 
                     }, 1200);
@@ -722,9 +709,6 @@
         }
     }
 
-    // ==========================================
-    // SINCRONIZAÇÃO EM TEMPO REAL (AO VIVO)
-    // ==========================================
     function startLiveUpdates() {
         setInterval(async () => {
             if (!isLogged) return;

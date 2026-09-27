@@ -1,70 +1,6 @@
-const express = require('express');
-const cors = require('cors');
-const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');
-const path = require('path');
-require('dotenv').config();
+// ... (mantenha todo o início do seu código, imports, pool e initDB)
 
-const app = express();
-app.use(express.json({ limit: '10mb' }));
-app.use(cors());
-
-// Servir a pasta public estaticamente (onde está o seu index.html e logo.png)
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Conexão com o Banco de Dados PostgreSQL
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
-});
-
-// Inicializar tabelas automaticamente ao ligar o servidor
-async function initDB() {
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        username VARCHAR(50) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        role VARCHAR(20) DEFAULT 'Nível 1',
-        blocked BOOLEAN DEFAULT false
-      );
-
-      CREATE TABLE IF NOT EXISTS documents (
-        id SERIAL PRIMARY KEY,
-        num VARCHAR(20) NOT NULL,
-        class VARCHAR(30) NOT NULL,
-        sci VARCHAR(100) NOT NULL,
-        comp VARCHAR(100),
-        dclass VARCHAR(100) NOT NULL,
-        cont TEXT NOT NULL,
-        desc_text TEXT NOT NULL,
-        obs TEXT NOT NULL,
-        image TEXT,
-        creator VARCHAR(50) NOT NULL,
-        status VARCHAR(20) DEFAULT 'pending',
-        reject_reason TEXT DEFAULT ''
-      );
-    `);
-    
-    // Criar usuário admin padrão se não existir
-    const adminCheck = await pool.query("SELECT * FROM users WHERE username = 'admin'");
-    if (adminCheck.rows.length === 0) {
-      const hashedPass = await bcrypt.hash('OFICINA DO CAOS', 10);
-      await pool.query(
-        "INSERT INTO users (username, password, role, blocked) VALUES ($1, $2, $3, $4)",
-        ['admin', hashedPass, 'O5', false]
-      );
-      console.log('>> Usuário ADMIN padrão criado com segurança.');
-    }
-    console.log('>> Banco de dados conectado e tabelas verificadas com sucesso!');
-  } catch (err) {
-    console.error('Erro ao inicializar o banco de dados:', err);
-  }
-}
-initDB();
-
-// Rotas da API
+// Rotas da API - Documentos
 app.get('/api/docs', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM documents ORDER BY id DESC');
@@ -101,6 +37,11 @@ app.put('/api/docs/:id/eval', async (req, res) => {
   }
 });
 
+// ==========================================
+// ROTAS DE USUÁRIOS (ADICIONADAS / CORRIGIDAS)
+// ==========================================
+
+// Listar usuários
 app.get('/api/users', async (req, res) => {
   try {
     const result = await pool.query('SELECT id, username, role, blocked FROM users');
@@ -110,6 +51,65 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+// Criar novo usuário (Painel O5)
+app.post('/api/users', async (req, res) => {
+  try {
+    const { username, password, role, blocked } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Usuário e senha são obrigatórios.' });
+    }
+
+    const cleanUser = username.trim().toLowerCase();
+
+    // Verificar se o usuário já existe
+    const existing = await pool.query('SELECT * FROM users WHERE username = $1', [cleanUser]);
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: 'Este nome de usuário já está em uso.' });
+    }
+
+    // Criptografar a senha com bcrypt
+    const hashedPass = await bcrypt.hash(password, 10);
+    const userRole = role || 'Nível 1';
+    const isBlocked = blocked || false;
+
+    const query = `
+      INSERT INTO users (username, password, role, blocked)
+      VALUES ($1, $2, $3, $4) RETURNING id, username, role, blocked;
+    `;
+    const newUser = await pool.query(query, [cleanUser, hashedPass, userRole, isBlocked]);
+    
+    res.status(201).json(newUser.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Atualizar cargo ou status de bloqueio do usuário
+app.put('/api/users/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { role, blocked } = req.body;
+
+    const targetUser = await pool.query('SELECT * FROM users WHERE username = $1', [username.toLowerCase()]);
+    if (targetUser.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+
+    const current = targetUser.rows[0];
+    const newRole = role !== undefined ? role : current.role;
+    const newBlocked = blocked !== undefined ? blocked : current.blocked;
+
+    const query = 'UPDATE users SET role = $1, blocked = $2 WHERE username = $3 RETURNING id, username, role, blocked;';
+    const updated = await pool.query(query, [newRole, newBlocked, username.toLowerCase()]);
+
+    res.json(updated.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Rota de Login
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;

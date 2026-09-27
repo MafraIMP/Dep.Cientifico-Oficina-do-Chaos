@@ -417,7 +417,6 @@
         }
     }
 
-    // Som de clique de terminal
     function playClickSound() {
         try {
             initAudio();
@@ -438,7 +437,6 @@
         } catch(e) {}
     }
 
-    // Som dinâmico de carregamento de sistema / boot
     function playLoadingSound() {
         try {
             initAudio();
@@ -541,7 +539,6 @@
         const u = document.getElementById('gate-user').value.trim().toLowerCase();
         const p = document.getElementById('gate-pass').value;
 
-        // Dispara o som de carregamento logo no clique de autenticação
         playLoadingSound();
 
         try {
@@ -768,7 +765,6 @@
             document.getElementById('btn-reject').onclick = () => { playAlertSound(); processEvaluation(doc.id, 'rejected'); };
         }
 
-        // Habilita painel de exclusão para Nível 5 e O5
         if(isLevel5OrO5) {
             document.getElementById('delete-panel').style.display = 'block';
         }

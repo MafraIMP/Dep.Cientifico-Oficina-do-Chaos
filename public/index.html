@@ -25,7 +25,7 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: var(--bg); color: var(--text); font-family: var(--font-sans); display: flex; flex-direction: column; height: 100vh; overflow: hidden; user-select: none; }
+        body { background-color: var(--bg); color: var(--text); font-family: var(--font-sans); display: flex; flex-direction: column; height: 100vh; overflow: hidden; user-select: none; position: relative; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -129,6 +129,21 @@
         .user-mgmt-item { display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid var(--border); padding: 10px 15px; margin-bottom: 10px; font-family: var(--font-mono); font-size: 12px; border-radius: 2px; }
         .user-mgmt-item.blocked { border-color: var(--rejected); background: #fff0f0; }
 
+        /* Assinatura MafraINF no canto inferior direito */
+        .mafrainf-watermark {
+            position: fixed;
+            bottom: 5px;
+            right: 8px;
+            font-family: var(--font-mono);
+            font-size: 9px;
+            color: #4b0082; /* Roxo Índigo */
+            font-weight: bold;
+            opacity: 0.75;
+            z-index: 999999;
+            pointer-events: none;
+            letter-spacing: 0.5px;
+        }
+
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--border); }
@@ -136,6 +151,9 @@
     </style>
 </head>
 <body>
+
+    <!-- Assinatura solicitada -->
+    <div class="mafrainf-watermark">ⓘ Powered by: MafraINF</div>
 
     <div id="blocked-screen">
         <h1>[ ACESSO REVOGADO ]</h1>
@@ -181,10 +199,13 @@
     </header>
 
     <nav class="horizontal-nav">
-        <div class="dropdown-trigger" onclick="renderDocs('Todos')"><i class="fa-solid fa-folder-open"></i> Todos os Arquivos</div>
-        <div class="dropdown-trigger" onclick="renderDocs('Safe')"><i class="fa-solid fa-lock"></i> Safe</div>
-        <div class="dropdown-trigger" onclick="renderDocs('Euclid')"><i class="fa-solid fa-eye"></i> Euclid</div>
-        <div class="dropdown-trigger" onclick="renderDocs('Keter')"><i class="fa-solid fa-skull"></i> Keter</div>
+        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Todos')"><i class="fa-solid fa-folder-open"></i> Todos os Arquivos</div>
+        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Branco')"><i class="fa-solid fa-file" style="color:#aaa;"></i> Branco</div>
+        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Amarelo')"><i class="fa-solid fa-shield" style="color:#cca300;"></i> Amarelo</div>
+        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Laranja')"><i class="fa-solid fa-triangle-exclamation" style="color:#ff8c00;"></i> Laranja</div>
+        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Vermelho')"><i class="fa-solid fa-skull-crossbones" style="color:#cc0000;"></i> Vermelho</div>
+        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Roxo')"><i class="fa-solid fa-radiation" style="color:#6600cc;"></i> Roxo</div>
+        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Preto')"><i class="fa-solid fa-bomb" style="color:#000;"></i> Preto</div>
     </nav>
 
     <main>
@@ -192,8 +213,8 @@
             <div class="view-header">
                 <h2 id="view-title">Banco de Dados SCP</h2>
                 <div id="admin-actions" style="display: none; gap: 10px;">
-                    <button class="btn" onclick="openAdminModal()"><i class="fa-solid fa-users-gear"></i> Gestão O5</button>
-                    <button class="btn btn-fill" onclick="openCreateModal()"><i class="fa-solid fa-plus"></i> Novo Documento SCP</button>
+                    <button class="btn" onclick="playClickSound(); openAdminModal()"><i class="fa-solid fa-users-gear"></i> Gestão O5</button>
+                    <button class="btn btn-fill" onclick="playClickSound(); openCreateModal()"><i class="fa-solid fa-plus"></i> Novo Documento SCP</button>
                 </div>
             </div>
             <div class="docs-grid" id="docs-container"></div>
@@ -204,7 +225,7 @@
         <div class="modal-box" style="width: 900px;">
             <div class="modal-header">
                 <h3><i class="fa-solid fa-file-shield"></i> REDIGIR NOVO REGISTRO SCP</h3>
-                <i class="fa-solid fa-xmark" style="cursor:pointer; font-size: 18px;" onclick="closeModal('create-modal')"></i>
+                <i class="fa-solid fa-xmark" style="cursor:pointer; font-size: 18px;" onclick="playClickSound(); closeModal('create-modal')"></i>
             </div>
             <div class="modal-body">
                 <div class="form-row">
@@ -216,15 +237,15 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Classe do Objeto <span class="required-mark">*</span></label>
+                        <label>Classe de Ameaça <span class="required-mark">*</span></label>
                         <select id="doc-class" class="form-control">
-                            <option value="">Selecione...</option>
-                            <option value="Safe">Safe</option>
-                            <option value="Euclid">Euclid</option>
-                            <option value="Keter">Keter</option>
-                            <option value="Thaumiel">Thaumiel</option>
-                            <option value="Apollyon">Apollyon</option>
-                            <option value="Anômalo">Objeto Anômalo</option>
+                            <option value="">Selecione a Classe...</option>
+                            <option value="Branco">Branco (Seguro/Inofensivo)</option>
+                            <option value="Amarelo">Amarelo (Baixo Risco / Cuidado)</option>
+                            <option value="Laranja">Laranja (Moderado / Atenção)</option>
+                            <option value="Vermelho">Vermelho (Alto Risco / Perigoso)</option>
+                            <option value="Roxo">Roxo (Extremo / Anômalo Crítico)</option>
+                            <option value="Preto">Preto (Apollyon / Fim do Mundo)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -263,7 +284,7 @@
                     <textarea id="doc-obs" class="form-control" placeholder="Notas do pesquisador, incidentes passados ou informações críticas extras..."></textarea>
                 </div>
 
-                <button class="btn btn-fill" style="width:100%; justify-content: center; padding: 15px;" onclick="saveDocument()">
+                <button class="btn btn-fill" style="width:100%; justify-content: center; padding: 15px;" onclick="playClickSound(); saveDocument()">
                     <i class="fa-solid fa-paper-plane"></i> ENVIAR PARA AVALIAÇÃO DO COMANDO
                 </button>
             </div>
@@ -275,7 +296,7 @@
             <div id="read-status-line" class="doc-status-line"></div>
             <div class="modal-header">
                 <h3>VISUALIZADOR DE ARQUIVOS CONFIDENCIAIS</h3>
-                <i class="fa-solid fa-xmark" style="cursor:pointer; font-size: 18px;" onclick="closeModal('read-modal')"></i>
+                <i class="fa-solid fa-xmark" style="cursor:pointer; font-size: 18px;" onclick="playClickSound(); closeModal('read-modal')"></i>
             </div>
             
             <div class="modal-body scp-document-reader">
@@ -292,7 +313,7 @@
                     </div>
 
                     <div class="scp-section"><strong>Item #:</strong> SCP-<span id="read-num"></span></div>
-                    <div class="scp-section"><strong>Classe do Objeto:</strong> <span id="read-class"></span></div>
+                    <div class="scp-section"><strong>Classe de Ameaça:</strong> <span id="read-class"></span></div>
                     <div class="scp-section"><strong>Cientista Responsável:</strong> <span id="read-sci"></span></div>
                     
                     <div class="scp-section" id="box-companions" style="display:none;">
@@ -325,8 +346,8 @@
                             <input type="text" id="eval-reason" class="form-control" placeholder="Descreva o motivo da censura...">
                         </div>
                         <div style="display: flex; gap: 10px; margin-top: 15px;">
-                            <button class="btn btn-success" id="btn-approve"><i class="fa-solid fa-check"></i> Aprovar Arquivo</button>
-                            <button class="btn btn-danger" id="btn-reject"><i class="fa-solid fa-ban"></i> Rejeitar & Censurar</button>
+                            <button class="btn btn-success" id="btn-approve" onclick="playClickSound()"><i class="fa-solid fa-check"></i> Aprovar Arquivo</button>
+                            <button class="btn btn-danger" id="btn-reject" onclick="playAlertSound()"><i class="fa-solid fa-ban"></i> Rejeitar & Censurar</button>
                         </div>
                     </div>
                 </div>
@@ -349,7 +370,7 @@
         <div class="modal-box" style="width: 700px;">
             <div class="modal-header">
                 <h3><i class="fa-solid fa-server"></i> COMANDO O5 - GESTÃO DE PESSOAL</h3>
-                <i class="fa-solid fa-xmark" style="cursor:pointer; font-size: 18px;" onclick="closeModal('admin-modal')"></i>
+                <i class="fa-solid fa-xmark" style="cursor:pointer; font-size: 18px;" onclick="playClickSound(); closeModal('admin-modal')"></i>
             </div>
             <div class="modal-body">
                 
@@ -357,7 +378,7 @@
                 <div style="background: var(--gray-subtle); padding: 15px; border: 1px solid var(--border); margin-bottom: 30px; display: flex; gap: 10px; border-radius: 2px;">
                     <input type="text" id="new-user" class="form-control" placeholder="ID de Usuário">
                     <input type="password" id="new-pass" class="form-control" placeholder="Senha">
-                    <button class="btn btn-fill" onclick="adminCreateUser()">Criar</button>
+                    <button class="btn btn-fill" onclick="playClickSound(); adminCreateUser()">Criar</button>
                 </div>
 
                 <h4 style="font-family: var(--font-mono); margin-bottom: 10px; font-size: 14px;">PESSOAL ATIVO / REVOGAÇÕES</h4>
@@ -368,6 +389,88 @@
     </div>
 
 <script>
+    /* =========================================================
+       SISTEMA DE EFEITOS SONOROS (WEB AUDIO API SYNTHESIZER)
+       Gera sons sci-fi, cliques e alertas sem precisar de arquivos externos.
+       ========================================================= */
+    let audioCtx = null;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    // Som de clique estilo terminal sci-fi
+    function playClickSound() {
+        try {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.05);
+            
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+        } catch(e) {}
+    }
+
+    // Som de bipe de sucesso/conexão
+    function playSuccessSound() {
+        try {
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(440, now);
+            osc.frequency.setValueAtTime(880, now + 0.08);
+
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + 0.3);
+        } catch(e) {}
+    }
+
+    // Som de alerta grave/rejeição
+    function playAlertSound() {
+        try {
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.linearRampToValueAtTime(80, now + 0.25);
+
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + 0.25);
+        } catch(e) {}
+    }
+
     let isLogged = false;
     let currentUser = "";
     let currentRole = "";
@@ -417,6 +520,7 @@
                 currentUser = data.username; 
                 currentRole = data.role;
                 
+                playSuccessSound();
                 document.getElementById('entry-screen').style.opacity = '0';
                 setTimeout(() => document.getElementById('entry-screen').style.display = 'none', 500);
                 
@@ -431,12 +535,13 @@
                 setTimeout(() => {
                     document.getElementById('intro-text').innerText = "ACESSO AUTORIZADO.";
                     introLogo.classList.remove('logo-spinning');
+                    playSuccessSound();
                     
                     setTimeout(() => {
                         introScreen.style.opacity = '0'; 
                         setTimeout(() => introScreen.style.display = 'none', 500);
                         
-                        document.getElementById('auth-status-ui').innerHTML = `<span>OPE: <strong>${currentUser.toUpperCase()}</strong> | CARGO: <strong>${currentRole.toUpperCase()}</strong></span> <button class="btn" onclick="location.reload()">SAIR</button>`;
+                        document.getElementById('auth-status-ui').innerHTML = `<span>OPE: <strong>${currentUser.toUpperCase()}</strong> | CARGO: <strong>${currentRole.toUpperCase()}</strong></span> <button class="btn" onclick="playClickSound(); location.reload()">SAIR</button>`;
                         document.getElementById('admin-actions').style.display = 'flex'; 
                         
                         if(currentRole !== "O5") {
@@ -447,6 +552,7 @@
                     }, 1200);
                 }, 2000);
             } else {
+                playAlertSound();
                 if(data.error === 'Usuário bloqueado pelo Comando O5.') {
                     document.getElementById('entry-screen').style.display = 'none';
                     document.getElementById('blocked-screen').style.display = 'flex';
@@ -455,6 +561,7 @@
                 }
             }
         } catch (err) {
+            playAlertSound();
             alert("Erro ao conectar com o servidor.");
         }
     }
@@ -465,7 +572,7 @@
         let filtered = filter === 'Todos' ? globalDocs : globalDocs.filter(d => d.class === filter);
         
         if(filtered.length === 0) {
-            container.innerHTML = `<div style="font-family: var(--font-mono); color: #666; font-size: 13px;">Nenhum registro encontrado nesta categoria.</div>`;
+            container.innerHTML = `<div style="font-family: var(--font-mono); color: #666; font-size: 13px;">Nenhum registro encontrado nesta categoria de ameaça.</div>`;
             return;
         }
 
@@ -474,9 +581,16 @@
             let badgeHtml = "<span class='status-badge' style='background: #eee; color: #000;'>PENDENTE</span>";
             let displayDesc = (doc.desc || '').substring(0, 80) + '...';
 
+            // Cores específicas baseadas nas novas classes de ameaça
+            if(doc.class === 'Branco') borderColor = '#888888';
+            else if(doc.class === 'Amarelo') borderColor = '#cca300';
+            else if(doc.class === 'Laranja') borderColor = '#ff8c00';
+            else if(doc.class === 'Vermelho') borderColor = '#cc0000';
+            else if(doc.class === 'Roxo') borderColor = '#6600cc';
+            else if(doc.class === 'Preto') borderColor = '#111111';
+
             if(doc.status === "approved") {
-                borderColor = "var(--approved)";
-                badgeHtml = "<span class='status-badge' style='background: var(--approved); color: #fff;'>APROVADO</span>";
+                badgeHtml = `<span class='status-badge' style='background: ${borderColor}; color: #fff;'>${doc.class.toUpperCase()}</span>`;
             } else if(doc.status === "rejected") {
                 borderColor = "var(--rejected)";
                 badgeHtml = "<span class='status-badge' style='background: var(--rejected); color: #fff;'>CENSURADO</span>";
@@ -484,10 +598,10 @@
             }
 
             container.innerHTML += `
-            <div class="doc-card animated-card" onclick='openReadModal(${doc.id})' style='border-top-color: ${borderColor}'>
+            <div class="doc-card animated-card" onclick='playClickSound(); openReadModal(${doc.id})' style='border-top-color: ${borderColor}'>
                 ${badgeHtml}
                 <div class="doc-card-title">SCP-${doc.num}</div>
-                <div class="doc-card-class">CLASSE: ${doc.class}</div>
+                <div class="doc-card-class">CLASSE DE AMEAÇA: ${doc.class}</div>
                 <div class="doc-card-desc">${displayDesc}</div>
             </div>`;
         });
@@ -513,6 +627,7 @@
         const imgInput = document.getElementById('doc-image');
 
         if(!num || !scpClass || !sci || !dclass || !desc || !cont || !obs) {
+            playAlertSound();
             alert("Erro: Preencha todos os campos obrigatórios (*)."); return;
         }
 
@@ -541,14 +656,17 @@
                 body: JSON.stringify(doc)
             });
             if(res.ok) {
+                playSuccessSound();
                 alert(`Registro SCP-${doc.num} arquivado e aguardando avaliação do Comando O5.`);
                 closeModal('create-modal');
                 await loadDocs();
                 renderDocs('Todos');
             } else {
+                playAlertSound();
                 alert("Erro ao salvar no banco de dados central.");
             }
         } catch(err) {
+            playAlertSound();
             console.error(err);
             alert("Erro de conexão com o servidor.");
         }
@@ -609,8 +727,8 @@
             document.getElementById('eval-panel').style.display = 'block';
             document.getElementById('eval-reason').value = doc.rejectReason || '';
             
-            document.getElementById('btn-approve').onclick = () => { processEvaluation(doc.id, 'approved'); };
-            document.getElementById('btn-reject').onclick = () => { processEvaluation(doc.id, 'rejected'); };
+            document.getElementById('btn-approve').onclick = () => { playSuccessSound(); processEvaluation(doc.id, 'approved'); };
+            document.getElementById('btn-reject').onclick = () => { playAlertSound(); processEvaluation(doc.id, 'rejected'); };
         }
 
         openModal('read-modal');
@@ -623,7 +741,7 @@
         let reason = "";
         if(newStatus === 'rejected') {
             reason = document.getElementById('eval-reason').value.trim();
-            if(!reason) { alert("Para rejeitar, é obrigatório preencher o motivo do expurgo."); return; }
+            if(!reason) { playAlertSound(); alert("Para rejeitar, é obrigatório preencher o motivo do expurgo."); return; }
             doc.rejectReason = reason;
         }
 
@@ -640,9 +758,11 @@
                 await loadDocs();
                 renderDocs('Todos'); 
             } else {
+                playAlertSound();
                 alert("Erro ao atualizar o status na API.");
             }
         } catch(err) {
+            playAlertSound();
             console.error(err);
             alert("Erro de comunicação com o servidor.");
         }
@@ -657,7 +777,7 @@
     async function adminCreateUser() {
         const u = document.getElementById('new-user').value.trim().toLowerCase();
         const p = document.getElementById('new-pass').value;
-        if(!u || !p) return alert("Preencha ID e Senha.");
+        if(!u || !p) { playAlertSound(); return alert("Preencha ID e Senha."); }
         
         try {
             const res = await fetch('/api/users', {
@@ -667,15 +787,18 @@
             });
             const data = await res.json();
             if(res.ok) {
+                playSuccessSound();
                 alert(`Operador ${u} criado com sucesso.`);
                 document.getElementById('new-user').value = '';
                 document.getElementById('new-pass').value = '';
                 await loadUsers();
                 renderAdminUserList();
             } else {
+                playAlertSound();
                 alert(data.error || "Erro ao criar usuário.");
             }
         } catch(err) {
+            playAlertSound();
             alert("Erro de conexão ao criar usuário.");
         }
     }
@@ -697,11 +820,11 @@
                     <div style="font-weight: 900; width: 120px;">${u.username.toUpperCase()}</div>
                     
                     <div style="display:flex; gap: 10px; align-items:center;">
-                        <select class="form-control" style="width: auto; padding: 5px; margin:0;" onchange="updateUserStatus('${u.username}', this.value, ${u.blocked})" ${isMe ? 'disabled' : ''}>
+                        <select class="form-control" style="width: auto; padding: 5px; margin:0;" onchange="playClickSound(); updateUserStatus('${u.username}', this.value, ${u.blocked})" ${isMe ? 'disabled' : ''}>
                             ${selectOptions}
                         </select>
                         
-                        <button class="btn ${u.blocked ? 'btn-success' : 'btn-danger'}" style="padding: 5px 10px;" onclick="updateUserStatus('${u.username}', '${u.role}', ${!u.blocked})" ${isMe ? 'disabled' : ''}>
+                        <button class="btn ${u.blocked ? 'btn-success' : 'btn-danger'}" style="padding: 5px 10px;" onclick="playClickSound(); updateUserStatus('${u.username}', '${u.role}', ${!u.blocked})" ${isMe ? 'disabled' : ''}>
                             ${u.blocked ? '<i class="fa-solid fa-unlock"></i> Restaurar' : '<i class="fa-solid fa-ban"></i> Revogar'}
                         </button>
                     </div>
@@ -721,9 +844,11 @@
                 await loadUsers();
                 renderAdminUserList();
             } else {
+                playAlertSound();
                 alert("Erro ao atualizar dados do usuário.");
             }
         } catch(err) {
+            playAlertSound();
             alert("Erro de conexão com o servidor.");
         }
     }

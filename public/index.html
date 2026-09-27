@@ -439,21 +439,19 @@
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             
-            // Tom científico limpo (onda senoidal com varredura suave de alta frequência)
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(587.33, now); // Nota D5 (científica/limpa)
-            osc.frequency.exponentialRampToValueAtTime(880, now + 0.3); // Sobe suavemente
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(100, now);
+            osc.frequency.exponentialRampToValueAtTime(1200, now + 1.2);
 
-            // Envelope de volume curto, seco e elegante (Fade-in e Fade-out rápido)
-            gain.gain.setValueAtTime(0.001, now);
-            gain.gain.linearRampToValueAtTime(0.08, now + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.linearRampToValueAtTime(0.15, now + 1.0);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
 
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
             osc.start(now);
-            osc.stop(now + 0.35);
+            osc.stop(now + 1.4);
         } catch(e) {}
     }
 
@@ -668,7 +666,7 @@
         filtered.forEach(doc => {
             let borderColor = "var(--primary)";
             let badgeHtml = "<span class='status-badge' style='background: #eee; color: #000;'>PENDENTE</span>";
-            let displayDesc = (doc.desc || '').substring(0, 80) + '...';
+            let displayDesc = (doc.desc_text || '').substring(0, 80) + '...';
 
             if(doc.status === "approved") {
                 borderColor = "var(--approved)";
@@ -798,7 +796,7 @@
             document.getElementById('read-obs').innerHTML = "<div class='censored-block'>[ EXPURGADO ]</div>";
         } else {
             document.getElementById('read-cont').innerText = doc.cont;
-            document.getElementById('read-desc').innerText = doc.desc;
+            document.getElementById('read-desc').innerText = doc.desc_text;
             document.getElementById('read-obs').innerText = doc.obs;
             
             if(doc.image) {
@@ -808,13 +806,13 @@
 
             if(doc.status === "rejected") {
                 document.getElementById('side-panel').style.display = 'flex';
-                document.getElementById('side-reject-reason').innerText = doc.rejectReason || "Motivo não especificado.";
+                document.getElementById('side-reject-reason').innerText = doc.reject_reason || "Motivo não especificado.";
             }
         }
 
         if(isAdmin && doc.status !== 'approved') {
             document.getElementById('eval-panel').style.display = 'block';
-            document.getElementById('eval-reason').value = doc.rejectReason || '';
+            document.getElementById('eval-reason').value = doc.reject_reason || '';
             
             document.getElementById('btn-approve').onclick = () => { playSuccessSound(); processEvaluation(doc.id, 'approved'); };
             document.getElementById('btn-reject').onclick = () => { playAlertSound(); processEvaluation(doc.id, 'rejected'); };
@@ -835,7 +833,7 @@
         if(newStatus === 'rejected') {
             reason = document.getElementById('eval-reason').value.trim();
             if(!reason) { playAlertSound(); alert("Para rejeitar, é obrigatório preencher o motivo do expurgo."); return; }
-            doc.rejectReason = reason;
+            doc.reject_reason = reason;
         }
 
         try {

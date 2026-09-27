@@ -7,6 +7,7 @@
     <title>Departamento Científico - SCP[RP] - Oficina do Caos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Variáveis de Cores e Fontes */
         :root {
             --bg: #f0f2f5; 
             --text: #1a1a1a;
@@ -16,72 +17,187 @@
             --header-bg: #ffffff;
             --header-text: #000000;
             --card-bg: #ffffff;
+            
             --font-mono: 'Courier New', Courier, monospace;
             --font-sans: 'Inter', 'Segoe UI', Arial, sans-serif;
             
             --approved: #28a745;
             --rejected: #dc3545;
             --pending: #ffc107;
+            --censored-bg: #fff5f5;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: var(--bg); color: var(--text); font-family: var(--font-sans); display: flex; flex-direction: column; height: 100vh; overflow: hidden; user-select: none; position: relative; }
+        /* Resets e Configurações Globais */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
+            font-family: var(--font-sans); 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            overflow: hidden; 
+            user-select: none; 
+            position: relative; 
+        }
 
+        /* Animações */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animated-card { animation: slideInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
-
-        @keyframes spinLogo {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spinLogo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         
-        .scp-logo { 
-            width: 90px; 
-            margin-bottom: 20px; 
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-        }
+        .animated-card { animation: slideInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
         .logo-spinning { animation: spinLogo 2s linear infinite; }
 
-        #entry-screen { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; transition: opacity 0.5s ease; }
-        .login-gate-box { background: var(--card-bg); border: 2px solid var(--primary); width: 380px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); text-align: center; color: var(--text); animation: fadeIn 1s ease-out; border-radius: 4px; }
-        .login-gate-box h2 { font-family: var(--font-mono); font-size: 18px; letter-spacing: 1px; margin-top: 10px; color: var(--primary); font-weight: 900; }
-        
-        #intro-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: none; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
-        .intro-content { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-        #intro-text { font-family: var(--font-mono); color: #000; font-size: 14px; letter-spacing: 2px; font-weight: bold; margin-top: 15px; }
+        .scp-logo { 
+            width: 90px; 
+            margin: 0 auto 20px auto; 
+            display: block;
+        }
 
-        #blocked-screen { position: fixed; inset: 0; background: #000000; color: #ff0000; z-index: 100000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: var(--font-mono); animation: fadeIn 0.3s ease; }
+        /* Telas de Bloqueio e Login */
+        #entry-screen, #intro-screen, #blocked-screen { 
+            position: fixed; 
+            inset: 0; 
+            z-index: 10000; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            flex-direction: column; 
+            transition: opacity 0.5s ease; 
+        }
+        
+        #entry-screen, #intro-screen { background: var(--bg); }
+        #intro-screen { z-index: 9999; display: none; }
+        
+        #blocked-screen { 
+            background: #000000; 
+            color: #ff0000; 
+            z-index: 100000; 
+            display: none; 
+            text-align: center; 
+            font-family: var(--font-mono); 
+            animation: fadeIn 0.3s ease; 
+        }
         #blocked-screen h1 { font-size: 40px; margin-bottom: 20px; letter-spacing: 5px; border: 2px dashed #ff0000; padding: 20px; }
         #blocked-screen p { font-size: 14px; margin-bottom: 30px; }
 
-        header { display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; background: var(--header-bg); border-bottom: 2px solid var(--primary); height: 70px; flex-shrink: 0; z-index: 20; color: var(--header-text); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .login-gate-box { 
+            background: var(--card-bg); 
+            border: 2px solid var(--primary); 
+            width: 100%; 
+            max-width: 380px; 
+            padding: 30px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); 
+            text-align: center; 
+            color: var(--text); 
+            animation: fadeIn 1s ease-out; 
+            border-radius: 4px; 
+        }
+        .login-gate-box h2 { font-family: var(--font-mono); font-size: 18px; letter-spacing: 1px; margin-top: 10px; color: var(--primary); font-weight: 900; }
+        .login-gate-subtitle { font-family: var(--font-mono); font-size: 11px; color: #555; margin-bottom: 25px; font-weight: bold; }
+        
+        .intro-content { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        #intro-text { font-family: var(--font-mono); color: #000; font-size: 14px; letter-spacing: 2px; font-weight: bold; margin-top: 15px; }
+
+        /* Estrutura Principal (Header, Nav, Main) */
+        header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 15px 30px; 
+            background: var(--header-bg); 
+            border-bottom: 2px solid var(--primary); 
+            height: 70px; 
+            flex-shrink: 0; 
+            z-index: 20; 
+            color: var(--header-text); 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
+        }
+        
         .brand { display: flex; align-items: center; gap: 15px; }
-        .brand h1 { font-family: var(--font-mono); font-size: 16px; font-weight: 900; letter-spacing: 1px; margin: 0; color: var(--header-text); text-transform: uppercase; }
+        .brand h1 { font-family: var(--font-mono); font-size: 16px; font-weight: 900; letter-spacing: 1px; margin: 0; text-transform: uppercase; }
         .brand span { color: #666; }
         .system-status { display: flex; gap: 20px; font-family: var(--font-mono); font-size: 12px; font-weight: bold; align-items: center; }
 
-        nav.horizontal-nav { display: flex; align-items: center; background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 0 30px; flex-shrink: 0; z-index: 100; min-height: 55px; gap: 10px; }
-        .dropdown-trigger { padding: 10px 16px; cursor: pointer; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; color: var(--text); font-family: var(--font-mono); text-transform: uppercase; border-radius: 4px; }
+        nav.horizontal-nav { 
+            display: flex; 
+            align-items: center; 
+            background: var(--card-bg); 
+            border-bottom: 1px solid var(--border); 
+            padding: 0 30px; 
+            flex-shrink: 0; 
+            z-index: 100; 
+            min-height: 55px; 
+            gap: 10px; 
+            overflow-x: auto;
+        }
+        .dropdown-trigger { 
+            padding: 10px 16px; 
+            cursor: pointer; 
+            font-size: 12px; 
+            font-weight: 800; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            transition: 0.2s; 
+            color: var(--text); 
+            font-family: var(--font-mono); 
+            text-transform: uppercase; 
+            border-radius: 4px; 
+            white-space: nowrap;
+        }
         .dropdown-trigger:hover { background: var(--gray-subtle); }
 
         main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .content-wrapper { flex: 1; padding: 40px; overflow-y: auto; background: var(--bg); }
 
-        .view-header { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        .view-header { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--primary); padding-bottom: 10px; flex-wrap: wrap; gap: 15px; }
         .view-header h2 { font-family: var(--font-mono); font-size: 24px; font-weight: 900; color: var(--text); }
 
-        .docs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
-        .doc-card { background: var(--card-bg); border: 1px solid var(--border); border-top: 4px solid var(--primary); padding: 20px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.03); position: relative; border-radius: 4px; }
+        /* Grid de Documentos */
+        .docs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .doc-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            border-top: 4px solid var(--primary); 
+            padding: 20px; 
+            cursor: pointer; 
+            transition: transform 0.2s, box-shadow 0.2s; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03); 
+            position: relative; 
+            border-radius: 4px; 
+        }
         .doc-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
-        .doc-card-title { font-family: var(--font-mono); font-weight: 900; font-size: 18px; color: var(--text); margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        .doc-card-title { font-family: var(--font-mono); font-weight: 900; font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
         .doc-card-class { font-size: 11px; color: #555; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; font-family: var(--font-mono); }
-        .doc-card-desc { font-size: 12px; color: #333; font-family: var(--font-sans); line-height: 1.5; }
+        .doc-card-desc { font-size: 12px; color: #333; line-height: 1.5; }
         .status-badge { position: absolute; top: 15px; right: 15px; font-size: 10px; font-family: var(--font-mono); font-weight: bold; padding: 3px 6px; border-radius: 3px; }
 
-        .btn { border: 2px solid var(--primary); background: transparent; padding: 10px 20px; font-family: var(--font-mono); font-size: 11px; font-weight: 900; cursor: pointer; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; color: var(--primary); transition: all 0.2s ease; border-radius: 2px; }
+        /* Botões */
+        .btn { 
+            border: 2px solid var(--primary); 
+            background: transparent; 
+            padding: 10px 20px; 
+            font-family: var(--font-mono); 
+            font-size: 11px; 
+            font-weight: 900; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            color: var(--primary); 
+            transition: all 0.2s ease; 
+            border-radius: 2px; 
+        }
         .btn:hover { background: var(--gray-subtle); }
         .btn-fill { background: var(--primary); color: #fff; }
         .btn-fill:hover { background: #333; color: #fff; }
@@ -90,128 +206,121 @@
         .btn-danger { border-color: var(--rejected); color: var(--rejected); }
         .btn-danger:hover { background: var(--rejected); color: #fff; }
 
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
-        .modal-box { background: var(--card-bg); border: 2px solid var(--primary); width: 850px; max-width: 95%; max-height: 90vh; display: flex; flex-direction: column; color: var(--text); position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.12); border-radius: 4px; }
+        /* Modais */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 20px; }
+        .modal-box { 
+            background: var(--card-bg); 
+            border: 2px solid var(--primary); 
+            width: 100%; 
+            max-height: 90vh; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12); 
+            border-radius: 4px; 
+        }
         .modal-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: var(--gray-subtle); flex-shrink: 0; border-bottom: 2px solid var(--primary); }
         .modal-header h3 { font-family: var(--font-mono); font-weight: 900; font-size: 16px; }
         .modal-body { padding: 30px; overflow-y: auto; position: relative; background: var(--card-bg); }
 
         .doc-status-line { height: 6px; width: 100%; position: absolute; top: 0; left: 0; }
 
-        .form-row { display: flex; gap: 20px; margin-bottom: 15px; }
-        .form-group { flex: 1; }
-        .form-group label { display: block; font-size: 11px; font-family: var(--font-mono); font-weight: bold; color: var(--text); margin-bottom: 6px; text-transform: uppercase; }
+        /* Formulários */
+        .form-row { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 15px; }
+        .form-group { flex: 1; min-width: 200px; text-align: left; }
+        .form-group label { display: block; font-size: 11px; font-family: var(--font-mono); font-weight: bold; margin-bottom: 6px; text-transform: uppercase; }
         .form-control { width: 100%; padding: 10px; border: 1px solid var(--border); font-size: 13px; font-family: var(--font-sans); background: #ffffff; color: var(--text); outline: none; transition: 0.2s; border-radius: 2px; }
-        .form-control:focus { border-color: var(--primary); background: #fff; }
+        .form-control:focus { border-color: var(--primary); }
         textarea.form-control { min-height: 80px; resize: vertical; }
         .required-mark { color: red; }
+        .input-group { display: flex; align-items: center; }
+        .input-group-addon { padding: 10px; background: var(--gray-subtle); border: 1px solid var(--border); border-right: none; font-family: var(--font-mono); font-weight: bold; }
 
-        .scp-document-reader { font-family: var(--font-mono); line-height: 1.6; font-size: 14px; position: relative; display: flex; gap: 20px; }
+        /* Leitor de Documento SCP */
+        .scp-document-reader { font-family: var(--font-mono); line-height: 1.6; font-size: 14px; position: relative; display: flex; flex-wrap: wrap; gap: 20px; }
         .scp-document-reader strong { font-weight: 900; color: #000; }
-        .scp-main-content { flex: 1; }
+        .scp-main-content { flex: 1; min-width: 60%; }
         
-        .scp-side-panel { width: 250px; flex-shrink: 0; display: none; flex-direction: column; gap: 15px; }
-        .rejection-note-box { background: #fff5f5; border: 2px solid var(--rejected); padding: 15px; font-size: 12px; }
+        .scp-side-panel { width: 100%; max-width: 280px; flex-shrink: 0; display: none; flex-direction: column; gap: 15px; }
+        @media (max-width: 768px) {
+            .scp-side-panel { max-width: 100%; }
+        }
+        
+        .rejection-note-box { background: var(--censored-bg); border: 2px solid var(--rejected); padding: 15px; font-size: 12px; }
         .rejection-note-box h4 { color: var(--rejected); margin-bottom: 10px; border-bottom: 1px solid var(--rejected); padding-bottom: 5px; font-weight: 900; }
         
         .scp-header-block { border-bottom: 3px solid #000; padding-bottom: 15px; margin-bottom: 20px; text-align: center; }
         .scp-header-block h1 { font-size: 26px; font-weight: 900; margin: 0; letter-spacing: 2px; }
         
         .scp-image-container { float: right; margin: 0 0 20px 20px; border: 2px solid #000; padding: 5px; background: #fff; max-width: 300px; text-align: center; font-size: 11px; font-weight: bold; }
+        @media (max-width: 600px) {
+            .scp-image-container { float: none; margin: 0 auto 20px auto; width: 100%; }
+        }
         .scp-image-container img { max-width: 100%; height: auto; display: block; border: 1px solid #000; margin-bottom: 5px; }
         .scp-section { margin-bottom: 15px; text-align: justify; }
 
-        .censored-block { color: var(--rejected); font-weight: bold; border: 2px dashed var(--rejected); padding: 15px; text-align: center; margin: 10px 0; background: #fff5f5; }
+        .censored-block { color: var(--rejected); font-weight: bold; border: 2px dashed var(--rejected); padding: 15px; text-align: center; margin: 10px 0; background: var(--censored-bg); }
 
         .admin-eval-box { background: var(--gray-subtle); border: 2px dashed var(--primary); padding: 20px; margin-top: 30px; display: none; }
         .admin-eval-box h4 { margin-bottom: 15px; font-family: var(--font-mono); font-weight: 900; }
 
-        .user-mgmt-item { display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid var(--border); padding: 10px 15px; margin-bottom: 10px; font-family: var(--font-mono); font-size: 12px; border-radius: 2px; }
+        .user-mgmt-item { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: #ffffff; border: 1px solid var(--border); padding: 10px 15px; margin-bottom: 10px; font-family: var(--font-mono); font-size: 12px; border-radius: 2px; }
         .user-mgmt-item.blocked { border-color: var(--rejected); background: #fff0f0; }
 
+        /* Utilitários fixos (Marca d'água e player de música) */
         .mafrainf-watermark {
-            position: fixed;
-            bottom: 5px;
-            right: 8px;
-            font-family: var(--font-mono);
-            font-size: 9px;
-            color: #4b0082;
-            font-weight: bold;
-            opacity: 0.75;
-            z-index: 999999;
-            pointer-events: none;
-            letter-spacing: 0.5px;
+            position: fixed; bottom: 5px; right: 8px; font-family: var(--font-mono); font-size: 9px; color: #4b0082; font-weight: bold; opacity: 0.75; z-index: 999999; pointer-events: none; letter-spacing: 0.5px;
         }
 
         .music-controller {
-            position: fixed;
-            bottom: 22px;
-            right: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--border);
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-family: var(--font-mono);
-            font-size: 10px;
-            z-index: 999998;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-            backdrop-filter: blur(2px);
+            position: fixed; bottom: 22px; right: 8px; display: flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.9); border: 1px solid var(--border); padding: 3px 8px; border-radius: 4px; font-family: var(--font-mono); font-size: 10px; z-index: 999998; box-shadow: 0 2px 5px rgba(0,0,0,0.08); backdrop-filter: blur(2px);
         }
-        .music-controller button {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            font-size: 10px;
-            color: var(--primary);
-            padding: 2px 4px;
-            transition: 0.2s;
-        }
-        .music-controller button:hover {
-            color: #4b0082;
-        }
+        .music-controller button { background: transparent; border: none; cursor: pointer; font-size: 10px; color: var(--primary); padding: 2px 4px; transition: 0.2s; }
+        .music-controller button:hover { color: #4b0082; }
 
-        ::-webkit-scrollbar { width: 8px; }
+        /* Scrollbar Personalizada */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
     </style>
 </head>
 <body>
 
-    <!-- Alterado para audio.mp3 conforme solicitado -->
+    <!-- Áudio de Fundo -->
     <audio id="bg-music" loop>
         <source src="audio.mp3" type="audio/mpeg">
     </audio>
 
-    <div class="music-controller" id="music-ctrl-box">
+    <!-- Controle de Música -->
+    <div class="music-controller" id="music-ctrl-box" style="display: none;">
         <i class="fa-solid fa-music" style="font-size: 9px; color: #4b0082;"></i>
         <button onclick="adjustMusicVolume(-0.1)" title="Diminuir Volume"><i class="fa-solid fa-volume-low"></i></button>
-        <button id="play-pause-btn" onclick="togglePlayMusic()" title="Pausar / Tocar"><i class="fa-solid fa-pause"></i></button>
+        <button id="play-pause-btn" onclick="togglePlayMusic()" title="Pausar / Tocar"><i class="fa-solid fa-play"></i></button>
         <button onclick="adjustMusicVolume(0.1)" title="Aumentar Volume"><i class="fa-solid fa-volume-high"></i></button>
     </div>
 
     <div class="mafrainf-watermark">ⓘ Powered by: MafraINF</div>
 
+    <!-- Tela de Bloqueio O5 -->
     <div id="blocked-screen">
         <h1>[ ACESSO REVOGADO ]</h1>
         <p>SUA CREDENCIAL FOI TERMINADA PELO COMANDO O5.<br>QUALQUER TENTATIVA DE INVASÃO ACIONARÁ A FORÇA TAREFA MÓVEL.</p>
         <button class="btn" style="border-color:#ff0000; color:#ff0000;" onclick="playClickSound(); location.reload()">VOLTAR AO INÍCIO</button>
     </div>
 
+    <!-- Tela de Autenticação -->
     <div id="entry-screen">
         <div class="login-gate-box">
             <img src="logo.png" alt="Logo SCP" class="scp-logo" onerror="this.style.display='none'">
             <h2>SCP // OFICINA DO CAOS</h2>
-            <p style="font-family: var(--font-mono); font-size: 11px; color: #555; margin-bottom: 25px; font-weight: bold;">SISTEMA DE CREDENCIAIS RESTRITO</p>
+            <p class="login-gate-subtitle">SISTEMA DE CREDENCIAIS RESTRITO</p>
             
-            <div class="form-group" style="text-align: left; margin-bottom: 15px;">
+            <div class="form-group" style="margin-bottom: 15px;">
                 <label>Designação Operacional</label>
                 <input type="text" id="gate-user" class="form-control" placeholder="ID de Acesso">
             </div>
-            <div class="form-group" style="text-align: left; margin-bottom: 30px;">
+            <div class="form-group" style="margin-bottom: 30px;">
                 <label>Chave de Acesso</label>
                 <input type="password" id="gate-pass" class="form-control" placeholder="Senha">
             </div>
@@ -222,6 +331,7 @@
         </div>
     </div>
 
+    <!-- Tela de Intro -->
     <div id="intro-screen">
         <div class="intro-content">
             <img id="intro-logo" src="logo.png" alt="Logo SCP" class="scp-logo" onerror="this.style.display='none'">
@@ -229,15 +339,17 @@
         </div>
     </div>
 
+    <!-- Cabeçalho Principal -->
     <header id="main-header">
         <div class="brand">
             <h1>DEP. CIENTÍFICO <span>//</span> OFICINA DO CAOS</h1>
         </div>
         <div class="system-status">
-            <div id="auth-status-ui" style="display: flex; gap: 15px; align-items: center;"></div>
+            <div id="auth-status-ui" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;"></div>
         </div>
     </header>
 
+    <!-- Navegação de Categorias -->
     <nav class="horizontal-nav">
         <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Todos')"><i class="fa-solid fa-folder-open"></i> Todos os Arquivos</div>
         <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Safe')"><i class="fa-solid fa-lock"></i> Safe</div>
@@ -245,6 +357,7 @@
         <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Keter')"><i class="fa-solid fa-skull"></i> Keter</div>
     </nav>
 
+    <!-- Área de Conteúdo -->
     <main>
         <div class="content-wrapper">
             <div class="view-header">
@@ -258,8 +371,9 @@
         </div>
     </main>
 
+    <!-- Modal de Criação de Documento -->
     <div class="modal-overlay" id="create-modal">
-        <div class="modal-box" style="width: 900px;">
+        <div class="modal-box" style="max-width: 900px;">
             <div class="modal-header">
                 <h3><i class="fa-solid fa-file-shield"></i> REDIGIR NOVO REGISTRO SCP</h3>
                 <i class="fa-solid fa-xmark" style="cursor:pointer; font-size: 18px;" onclick="playClickSound(); closeModal('create-modal')"></i>
@@ -268,8 +382,8 @@
                 <div class="form-row">
                     <div class="form-group" style="flex: 0.5;">
                         <label>SCP - [Número] <span class="required-mark">*</span></label>
-                        <div style="display:flex; align-items:center;">
-                            <span style="padding:10px; background:var(--gray-subtle); border:1px solid var(--border); border-right:none; font-family:var(--font-mono); font-weight:bold;">SCP-</span>
+                        <div class="input-group">
+                            <span class="input-group-addon">SCP-</span>
                             <input type="number" id="doc-num" class="form-control" placeholder="Ex: 096">
                         </div>
                     </div>
@@ -313,35 +427,36 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 15px;">
                     <label>Foto do SCP (Opcional)</label>
                     <input type="file" id="doc-image" class="form-control" accept="image/*" style="padding: 7px;">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 15px;">
                     <label>Descrição da Anomalia <span class="required-mark">*</span></label>
                     <textarea id="doc-desc" class="form-control" style="min-height: 120px;" placeholder="Detalhe a aparência, comportamento e efeitos anômalos..."></textarea>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 15px;">
                     <label>Método de Contenção (Procedimentos Especiais) <span class="required-mark">*</span></label>
                     <textarea id="doc-containment" class="form-control" style="min-height: 100px;" placeholder="Como manter a entidade/objeto contido em segurança..."></textarea>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 15px;">
                     <label>Observação / Adendos <span class="required-mark">*</span></label>
                     <textarea id="doc-obs" class="form-control" placeholder="Notas do pesquisador, incidentes passados ou informações críticas extras..."></textarea>
                 </div>
 
-                <button class="btn btn-fill" style="width:100%; justify-content: center; padding: 15px;" onclick="playClickSound(); saveDocument()">
+                <button class="btn btn-fill" style="width:100%; justify-content: center; padding: 15px; margin-top: 10px;" onclick="playClickSound(); saveDocument()">
                     <i class="fa-solid fa-paper-plane"></i> ENVIAR PARA AVALIAÇÃO DO COMANDO
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Modal de Visualização (Leitor) -->
     <div class="modal-overlay" id="read-modal">
-        <div class="modal-box" style="width: 950px;">
+        <div class="modal-box" style="max-width: 950px;">
             <div id="read-status-line" class="doc-status-line"></div>
             <div class="modal-header">
                 <h3>VISUALIZADOR DE ARQUIVOS CONFIDENCIAIS</h3>
@@ -395,14 +510,14 @@
                             <label>Motivo em caso de Rejeição / Expurgo:</label>
                             <input type="text" id="eval-reason" class="form-control" placeholder="Descreva o motivo da censura...">
                         </div>
-                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
                             <button class="btn btn-success" id="btn-approve"><i class="fa-solid fa-check"></i> Aprovar Arquivo</button>
                             <button class="btn btn-danger" id="btn-reject"><i class="fa-solid fa-ban"></i> Rejeitar & Censurar</button>
                         </div>
                     </div>
 
                     <div id="delete-panel" style="margin-top: 20px; display: none; text-align: right;">
-                        <button class="btn btn-danger" onclick="deleteCurrentDocument()"><i class="fa-solid fa-trash-can"></i> Deletar Documento Permanentemente</button>
+                        <button class="btn btn-danger" onclick="deleteCurrentDocument()"><i class="fa-solid fa-trash-can"></i> Deletar Permanente</button>
                     </div>
                 </div>
 
@@ -420,8 +535,9 @@
         </div>
     </div>
 
+    <!-- Modal de Gestão Admin (O5) -->
     <div class="modal-overlay" id="admin-modal">
-        <div class="modal-box" style="width: 700px;">
+        <div class="modal-box" style="max-width: 700px;">
             <div class="modal-header">
                 <h3><i class="fa-solid fa-server"></i> COMANDO O5 - GESTÃO DE PESSOAL</h3>
                 <i class="fa-solid fa-xmark" style="cursor:pointer; font-size: 18px;" onclick="playClickSound(); closeModal('admin-modal')"></i>
@@ -429,20 +545,21 @@
             <div class="modal-body">
                 
                 <h4 style="font-family: var(--font-mono); margin-bottom: 10px; font-size: 14px;">NOVO CREDENCIAMENTO</h4>
-                <div style="background: var(--gray-subtle); padding: 15px; border: 1px solid var(--border); margin-bottom: 30px; display: flex; gap: 10px; border-radius: 2px;">
-                    <input type="text" id="new-user" class="form-control" placeholder="ID de Usuário">
-                    <input type="password" id="new-pass" class="form-control" placeholder="Senha">
+                <div style="background: var(--gray-subtle); padding: 15px; border: 1px solid var(--border); margin-bottom: 30px; display: flex; flex-wrap: wrap; gap: 10px; border-radius: 2px;">
+                    <input type="text" id="new-user" class="form-control" style="flex: 1; min-width: 150px;" placeholder="ID de Usuário">
+                    <input type="password" id="new-pass" class="form-control" style="flex: 1; min-width: 150px;" placeholder="Senha">
                     <button class="btn btn-fill" onclick="playClickSound(); adminCreateUser()">Criar</button>
                 </div>
 
                 <h4 style="font-family: var(--font-mono); margin-bottom: 10px; font-size: 14px;">PESSOAL ATIVO / REVOGAÇÕES</h4>
-                <div id="user-management-list" style="max-height: 250px; overflow-y: auto; padding-right: 5px;"></div>
+                <div id="user-management-list" style="max-height: 350px; overflow-y: auto; padding-right: 5px;"></div>
 
             </div>
         </div>
     </div>
 
 <script>
+    // --- Sistema de Áudio (Web Audio API) ---
     let audioCtx = null;
 
     function initAudio() {
@@ -454,104 +571,72 @@
         }
     }
 
-    function playClickSound() {
-        try {
-            initAudio();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.03);
-            
-            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
-
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.03);
-        } catch(e) {}
-    }
-
-    function playLoadingSound() {
+    function playSound(type) {
         try {
             initAudio();
             const now = audioCtx.currentTime;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(150, now);
-            osc.frequency.exponentialRampToValueAtTime(900, now + 1.0);
-
-            gain.gain.setValueAtTime(0.05, now);
-            gain.gain.linearRampToValueAtTime(0.1, now + 0.8);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
-
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            osc.start(now);
-            osc.stop(now + 1.1);
-        } catch(e) {}
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.03);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.03);
+            } 
+            else if (type === 'loading') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(900, now + 1.0);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.linearRampToValueAtTime(0.1, now + 0.8);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 1.1);
+            }
+            else if (type === 'success') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.08);
+                osc.frequency.setValueAtTime(783.99, now + 0.16);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.4);
+            }
+            else if (type === 'alert') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.2);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.2);
+            }
+        } catch(e) { console.error("Erro de áudio", e); }
     }
 
-    function playSuccessSound() {
-        try {
-            initAudio();
-            const now = audioCtx.currentTime;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(523.25, now);
-            osc.frequency.setValueAtTime(659.25, now + 0.08);
-            osc.frequency.setValueAtTime(783.99, now + 0.16);
+    const playClickSound = () => playSound('click');
+    const playLoadingSound = () => playSound('loading');
+    const playSuccessSound = () => playSound('success');
+    const playAlertSound = () => playSound('alert');
 
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            osc.start(now);
-            osc.stop(now + 0.4);
-        } catch(e) {}
-    }
-
-    function playAlertSound() {
-        try {
-            initAudio();
-            const now = audioCtx.currentTime;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(220, now);
-            osc.frequency.linearRampToValueAtTime(110, now + 0.2);
-
-            gain.gain.setValueAtTime(0.12, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            osc.start(now);
-            osc.stop(now + 0.2);
-        } catch(e) {}
-    }
-
+    // --- Controle de Música de Fundo ---
     function startBackgroundMusic() {
         const bgMusic = document.getElementById('bg-music');
         const btn = document.getElementById('play-pause-btn');
+        const ctrlBox = document.getElementById('music-ctrl-box');
+        
         bgMusic.volume = 0.45;
         bgMusic.play().then(() => {
-            document.getElementById('music-ctrl-box').style.display = 'flex';
+            ctrlBox.style.display = 'flex';
             btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
         }).catch(err => {
-            console.log("Autoplay bloqueado pelo navegador, aguardando interação.", err);
-            document.getElementById('music-ctrl-box').style.display = 'flex';
+            console.log("Autoplay bloqueado, aguardando interação do usuário.", err);
+            ctrlBox.style.display = 'flex';
             btn.innerHTML = '<i class="fa-solid fa-play"></i>';
         });
     }
@@ -572,12 +657,11 @@
     function adjustMusicVolume(amount) {
         const bgMusic = document.getElementById('bg-music');
         playClickSound();
-        let newVol = bgMusic.volume + amount;
-        if (newVol > 1) newVol = 1;
-        if (newVol < 0) newVol = 0;
+        let newVol = Math.max(0, Math.min(1, bgMusic.volume + amount));
         bgMusic.volume = Number(newVol.toFixed(2));
     }
 
+    // --- Lógica de Estado e Navegação ---
     let isLogged = false;
     let currentUser = "";
     let currentRole = "";
@@ -591,26 +675,35 @@
         const savedRole = localStorage.getItem('scp_role');
 
         if (savedUser && savedRole) {
-            currentUser = savedUser;
-            currentRole = savedRole;
-            isLogged = true;
-
-            document.getElementById('entry-screen').style.display = 'none';
-            
-            document.getElementById('auth-status-ui').innerHTML = `<span>OPE: <strong>${currentUser.toUpperCase()}</strong> | CARGO: <strong>${currentRole.toUpperCase()}</strong></span> <button class="btn" onclick="logoutSession()">SAIR</button>`;
-            document.getElementById('admin-actions').style.display = 'flex'; 
-            
-            if(currentRole !== "O5") {
-                document.getElementById('admin-actions').children[0].style.display = 'none';
-            }
-
-            await loadDocs();
-            await loadUsers();
-            renderDocs(currentFilter);
-            startLiveUpdates();
-            startBackgroundMusic();
+            authenticateSession(savedUser, savedRole);
         }
     });
+
+    async function authenticateSession(user, role) {
+        currentUser = user;
+        currentRole = role;
+        isLogged = true;
+
+        document.getElementById('entry-screen').style.display = 'none';
+        setupUserInterface();
+        
+        await loadDocs();
+        await loadUsers();
+        renderDocs(currentFilter);
+        startLiveUpdates();
+        startBackgroundMusic();
+    }
+
+    function setupUserInterface() {
+        const authStatusUi = document.getElementById('auth-status-ui');
+        authStatusUi.innerHTML = `<span>OPE: <strong>${currentUser.toUpperCase()}</strong> | CARGO: <strong>${currentRole.toUpperCase()}</strong></span> <button class="btn" onclick="logoutSession()">SAIR</button>`;
+        
+        const adminActions = document.getElementById('admin-actions');
+        adminActions.style.display = 'flex'; 
+        if (currentRole !== "O5") {
+            adminActions.children[0].style.display = 'none';
+        }
+    }
 
     function logoutSession() {
         localStorage.removeItem('scp_user');
@@ -623,29 +716,27 @@
         try {
             const res = await fetch('/api/docs');
             const data = await res.json();
-            if(Array.isArray(data)) {
-                globalDocs = data;
-            }
-        } catch (err) {
-            console.error("Erro ao carregar documentos:", err);
-        }
+            if(Array.isArray(data)) globalDocs = data;
+        } catch (err) { console.error("Erro ao carregar documentos:", err); }
     }
 
     async function loadUsers() {
         try {
             const res = await fetch('/api/users');
             const data = await res.json();
-            if(Array.isArray(data)) {
-                registeredUsers = data;
-            }
-        } catch (err) {
-            console.error("Erro ao carregar usuários:", err);
-        }
+            if(Array.isArray(data)) registeredUsers = data;
+        } catch (err) { console.error("Erro ao carregar usuários:", err); }
     }
 
     async function validateGateLogin() {
         const u = document.getElementById('gate-user').value.trim().toLowerCase();
         const p = document.getElementById('gate-pass').value;
+
+        if (!u || !p) {
+            playAlertSound();
+            alert("Insira as credenciais.");
+            return;
+        }
 
         playLoadingSound();
 
@@ -655,16 +746,11 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: u, password: p })
             });
-
             const data = await response.json();
 
             if (response.ok) {
-                isLogged = true; 
-                currentUser = data.username; 
-                currentRole = data.role;
-
-                localStorage.setItem('scp_user', currentUser);
-                localStorage.setItem('scp_role', currentRole);
+                localStorage.setItem('scp_user', data.username);
+                localStorage.setItem('scp_role', data.role);
                 
                 document.getElementById('entry-screen').style.opacity = '0';
                 setTimeout(() => document.getElementById('entry-screen').style.display = 'none', 500);
@@ -685,18 +771,7 @@
                     setTimeout(() => {
                         introScreen.style.opacity = '0'; 
                         setTimeout(() => introScreen.style.display = 'none', 500);
-                        
-                        document.getElementById('auth-status-ui').innerHTML = `<span>OPE: <strong>${currentUser.toUpperCase()}</strong> | CARGO: <strong>${currentRole.toUpperCase()}</strong></span> <button class="btn" onclick="logoutSession()">SAIR</button>`;
-                        document.getElementById('admin-actions').style.display = 'flex'; 
-                        
-                        if(currentRole !== "O5") {
-                            document.getElementById('admin-actions').children[0].style.display = 'none';
-                        }
-                        
-                        renderDocs('Todos');
-                        startLiveUpdates();
-                        startBackgroundMusic();
-
+                        authenticateSession(data.username, data.role);
                     }, 1200);
                 }, 2000);
             } else {
@@ -719,7 +794,6 @@
             if (!isLogged) return;
             const previousLength = globalDocs.length;
             await loadDocs();
-            
             if (globalDocs.length !== previousLength) {
                 renderDocs(currentFilter);
             }
@@ -730,10 +804,11 @@
         currentFilter = filter;
         const container = document.getElementById('docs-container');
         container.innerHTML = '';
+        
         let filtered = filter === 'Todos' ? globalDocs : globalDocs.filter(d => d.class === filter);
         
         if(filtered.length === 0) {
-            container.innerHTML = `<div style="font-family: var(--font-mono); color: #666; font-size: 13px;">Nenhum registro encontrado nesta categoria.</div>`;
+            container.innerHTML = `<div style="font-family: var(--font-mono); color: #666; font-size: 13px; padding: 20px 0;">Nenhum registro encontrado nesta categoria.</div>`;
             return;
         }
 
@@ -773,36 +848,38 @@
     }
 
     function saveDocument() {
-        const num = document.getElementById('doc-num').value.trim();
-        const scpClass = document.getElementById('doc-class').value;
-        const scpThreat = document.getElementById('doc-threat').value;
-        const sci = document.getElementById('doc-scientist').value.trim();
-        const comp = document.getElementById('doc-companions').value.trim();
-        const dclass = document.getElementById('doc-classd').value.trim();
-        const desc = document.getElementById('doc-desc').value.trim();
-        const cont = document.getElementById('doc-containment').value.trim();
-        const obs = document.getElementById('doc-obs').value.trim();
-        const imgInput = document.getElementById('doc-image');
-
-        if(!num || !scpClass || !scpThreat || !sci || !dclass || !desc || !cont || !obs) {
-            playAlertSound();
-            alert("Erro: Preencha todos os campos obrigatórios (*)."); return;
-        }
-
-        const newDoc = { 
-            num, class: scpClass, threat: scpThreat, sci, comp, dclass, desc, cont, obs, image: null,
-            creator: currentUser, status: "pending", rejectReason: ""
+        const docData = {
+            num: document.getElementById('doc-num').value.trim(),
+            class: document.getElementById('doc-class').value,
+            threat: document.getElementById('doc-threat').value,
+            sci: document.getElementById('doc-scientist').value.trim(),
+            comp: document.getElementById('doc-companions').value.trim(),
+            dclass: document.getElementById('doc-classd').value.trim(),
+            desc: document.getElementById('doc-desc').value.trim(),
+            cont: document.getElementById('doc-containment').value.trim(),
+            obs: document.getElementById('doc-obs').value.trim(),
+            image: null,
+            creator: currentUser,
+            status: "pending",
+            rejectReason: ""
         };
 
+        if(!docData.num || !docData.class || !docData.threat || !docData.sci || !docData.dclass || !docData.desc || !docData.cont || !docData.obs) {
+            playAlertSound();
+            alert("Erro: Preencha todos os campos obrigatórios (*)."); 
+            return;
+        }
+
+        const imgInput = document.getElementById('doc-image');
         if(imgInput.files && imgInput.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                newDoc.image = e.target.result;
-                sendDocToApi(newDoc);
+                docData.image = e.target.result;
+                sendDocToApi(docData);
             };
             reader.readAsDataURL(imgInput.files[0]);
         } else {
-            sendDocToApi(newDoc);
+            sendDocToApi(docData);
         }
     }
 
@@ -870,7 +947,7 @@
             document.getElementById('read-obs').innerHTML = "<div class='censored-block'>[ EXPURGADO ]</div>";
         } else {
             document.getElementById('read-cont').innerText = doc.cont;
-            document.getElementById('read-desc').innerText = doc.desc_text;
+            document.getElementById('read-desc').innerText = doc.desc_text || doc.desc;
             document.getElementById('read-obs').innerText = doc.obs;
             
             if(doc.image) {

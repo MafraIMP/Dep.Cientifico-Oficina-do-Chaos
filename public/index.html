@@ -381,19 +381,37 @@
     ];
 
     // Função para carregar documentos reais do banco de dados (API)
-    async function loadDocs() {
-        try {
-            const res = await fetch('/api/docs');
-            const data = await res.json();
-            if(Array.isArray(data)) {
-                globalDocs = data;
-                renderDocs('Todos');
-            }
-        } catch (err) {
-            console.error("Erro ao carregar documentos da API:", err);
-        }
+   async function processEvaluation(id, newStatus) {
+    const doc = globalDocs.find(d => d.id == id);
+    if(!doc) return;
+
+    let reason = "";
+    if(newStatus === 'rejected') {
+        reason = document.getElementById('eval-reason').value.trim();
+        if(!reason) { alert("Para rejeitar, é obrigatório preencher o motivo do expurgo."); return; }
+        doc.rejectReason = reason;
     }
 
+    try {
+        // ADICIONADO O '/eval' NO FINAL DA ROTA ABAIXO PARA BATER COM O SEU SERVER.JS:
+        const res = await fetch(`/api/docs/${id}/eval`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus, rejectReason: reason })
+        });
+
+        if(res.ok) {
+            alert(newStatus === 'approved' ? "Documento APROVADO com sucesso." : "Documento REJEITADO e CENSURADO para a base.");
+            closeModal('read-modal');
+            loadDocs(); 
+        } else {
+            alert("Erro ao atualizar o status na API.");
+        }
+    } catch(err) {
+        console.error(err);
+        alert("Erro de comunicação com o servidor.");
+    }
+}
     // Função de login integrada com a sua API/Backend
     async function validateGateLogin() {
         const u = document.getElementById('gate-user').value.trim().toLowerCase();

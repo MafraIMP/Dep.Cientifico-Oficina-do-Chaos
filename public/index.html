@@ -152,13 +152,12 @@
 </head>
 <body>
 
-    <!-- Assinatura solicitada -->
     <div class="mafrainf-watermark">ⓘ Powered by: MafraINF</div>
 
     <div id="blocked-screen">
         <h1>[ ACESSO REVOGADO ]</h1>
         <p>SUA CREDENCIAL FOI TERMINADA PELO COMANDO O5.<br>QUALQUER TENTATIVA DE INVASÃO ACIONARÁ A FORÇA TAREFA MÓVEL.</p>
-        <button class="btn" style="border-color:#ff0000; color:#ff0000;" onclick="location.reload()">VOLTAR AO INÍCIO</button>
+        <button class="btn" style="border-color:#ff0000; color:#ff0000;" onclick="playClickSound(); location.reload()">VOLTAR AO INÍCIO</button>
     </div>
 
     <div id="entry-screen">
@@ -200,12 +199,9 @@
 
     <nav class="horizontal-nav">
         <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Todos')"><i class="fa-solid fa-folder-open"></i> Todos os Arquivos</div>
-        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Branco')"><i class="fa-solid fa-file" style="color:#aaa;"></i> Branco</div>
-        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Amarelo')"><i class="fa-solid fa-shield" style="color:#cca300;"></i> Amarelo</div>
-        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Laranja')"><i class="fa-solid fa-triangle-exclamation" style="color:#ff8c00;"></i> Laranja</div>
-        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Vermelho')"><i class="fa-solid fa-skull-crossbones" style="color:#cc0000;"></i> Vermelho</div>
-        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Roxo')"><i class="fa-solid fa-radiation" style="color:#6600cc;"></i> Roxo</div>
-        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Preto')"><i class="fa-solid fa-bomb" style="color:#000;"></i> Preto</div>
+        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Safe')"><i class="fa-solid fa-lock"></i> Safe</div>
+        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Euclid')"><i class="fa-solid fa-eye"></i> Euclid</div>
+        <div class="dropdown-trigger" onclick="playClickSound(); renderDocs('Keter')"><i class="fa-solid fa-skull"></i> Keter</div>
     </nav>
 
     <main>
@@ -237,20 +233,27 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Classe de Ameaça <span class="required-mark">*</span></label>
+                        <label>Classe do Objeto <span class="required-mark">*</span></label>
                         <select id="doc-class" class="form-control">
-                            <option value="">Selecione a Classe...</option>
-                            <option value="Branco">Branco (Seguro/Inofensivo)</option>
-                            <option value="Amarelo">Amarelo (Baixo Risco / Cuidado)</option>
-                            <option value="Laranja">Laranja (Moderado / Atenção)</option>
-                            <option value="Vermelho">Vermelho (Alto Risco / Perigoso)</option>
-                            <option value="Roxo">Roxo (Extremo / Anômalo Crítico)</option>
-                            <option value="Preto">Preto (Apollyon / Fim do Mundo)</option>
+                            <option value="">Selecione...</option>
+                            <option value="Safe">Safe</option>
+                            <option value="Euclid">Euclid</option>
+                            <option value="Keter">Keter</option>
+                            <option value="Thaumiel">Thaumiel</option>
+                            <option value="Apollyon">Apollyon</option>
+                            <option value="Anômalo">Objeto Anômalo</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Foto do SCP (Opcional)</label>
-                        <input type="file" id="doc-image" class="form-control" accept="image/*" style="padding: 7px;">
+                        <label>Classe de Ameaça <span class="required-mark">*</span></label>
+                        <select id="doc-threat" class="form-control">
+                            <option value="Branco">Branco (Seguro/Inofensivo)</option>
+                            <option value="Amarelo">Amarelo (Baixo Risco)</option>
+                            <option value="Laranja">Laranja (Moderado)</option>
+                            <option value="Vermelho">Vermelho (Alto Risco)</option>
+                            <option value="Roxo">Roxo (Crítico/Extremo)</option>
+                            <option value="Preto">Preto (Apollyon/Fim do Mundo)</option>
+                        </select>
                     </div>
                 </div>
 
@@ -265,8 +268,13 @@
                     </div>
                     <div class="form-group">
                         <label>Classes D Utilizados <span class="required-mark">*</span></label>
-                        <input type="text" id="doc-classd" class="form-control" placeholder="Ex: D-9341, D-8221 ou 'Nenhum'">
+                        <input type="text" id="doc-classd" class="form-control" placeholder="Ex: D-9341 ou 'Nenhum'">
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Foto do SCP (Opcional)</label>
+                    <input type="file" id="doc-image" class="form-control" accept="image/*" style="padding: 7px;">
                 </div>
 
                 <div class="form-group">
@@ -308,12 +316,13 @@
                     </div>
                     
                     <div class="scp-image-container" id="read-img-box" style="display:none;">
-                        <img id="read-img" src="" alt="Imagem do SCP">
+                        <img id="read-img" alt="Imagem do SCP">
                         <span id="read-img-caption">FOTO ARQUIVADA DO ITEM</span>
                     </div>
 
                     <div class="scp-section"><strong>Item #:</strong> SCP-<span id="read-num"></span></div>
-                    <div class="scp-section"><strong>Classe de Ameaça:</strong> <span id="read-class"></span></div>
+                    <div class="scp-section"><strong>Classe do Objeto:</strong> <span id="read-class"></span></div>
+                    <div class="scp-section"><strong>Classe de Ameaça:</strong> <span id="read-threat" style="font-weight: bold;"></span></div>
                     <div class="scp-section"><strong>Cientista Responsável:</strong> <span id="read-sci"></span></div>
                     
                     <div class="scp-section" id="box-companions" style="display:none;">
@@ -346,9 +355,14 @@
                             <input type="text" id="eval-reason" class="form-control" placeholder="Descreva o motivo da censura...">
                         </div>
                         <div style="display: flex; gap: 10px; margin-top: 15px;">
-                            <button class="btn btn-success" id="btn-approve" onclick="playClickSound()"><i class="fa-solid fa-check"></i> Aprovar Arquivo</button>
-                            <button class="btn btn-danger" id="btn-reject" onclick="playAlertSound()"><i class="fa-solid fa-ban"></i> Rejeitar & Censurar</button>
+                            <button class="btn btn-success" id="btn-approve"><i class="fa-solid fa-check"></i> Aprovar Arquivo</button>
+                            <button class="btn btn-danger" id="btn-reject"><i class="fa-solid fa-ban"></i> Rejeitar & Censurar</button>
                         </div>
+                    </div>
+
+                    <!-- Botão de Apagar para Nível 5 e O5 -->
+                    <div id="delete-panel" style="margin-top: 20px; display: none; text-align: right;">
+                        <button class="btn btn-danger" onclick="deleteCurrentDocument()"><i class="fa-solid fa-trash-can"></i> Deletar Documento Permanentemente</button>
                     </div>
                 </div>
 
@@ -391,7 +405,6 @@
 <script>
     /* =========================================================
        SISTEMA DE EFEITOS SONOROS (WEB AUDIO API SYNTHESIZER)
-       Gera sons sci-fi, cliques e alertas sem precisar de arquivos externos.
        ========================================================= */
     let audioCtx = null;
 
@@ -404,7 +417,7 @@
         }
     }
 
-    // Som de clique estilo terminal sci-fi
+    // Som de clique de terminal
     function playClickSound() {
         try {
             initAudio();
@@ -425,7 +438,30 @@
         } catch(e) {}
     }
 
-    // Som de bipe de sucesso/conexão
+    // Som dinâmico de carregamento de sistema / boot
+    function playLoadingSound() {
+        try {
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(100, now);
+            osc.frequency.exponentialRampToValueAtTime(1200, now + 1.2);
+
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.linearRampToValueAtTime(0.15, now + 1.0);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + 1.4);
+        } catch(e) {}
+    }
+
     function playSuccessSound() {
         try {
             initAudio();
@@ -448,7 +484,6 @@
         } catch(e) {}
     }
 
-    // Som de alerta grave/rejeição
     function playAlertSound() {
         try {
             initAudio();
@@ -486,7 +521,7 @@
                 globalDocs = data;
             }
         } catch (err) {
-            console.error("Erro ao carregar documentos da API:", err);
+            console.error("Erro ao carregar documentos:", err);
         }
     }
 
@@ -498,13 +533,16 @@
                 registeredUsers = data;
             }
         } catch (err) {
-            console.error("Erro ao carregar usuários da API:", err);
+            console.error("Erro ao carregar usuários:", err);
         }
     }
 
     async function validateGateLogin() {
         const u = document.getElementById('gate-user').value.trim().toLowerCase();
         const p = document.getElementById('gate-pass').value;
+
+        // Dispara o som de carregamento logo no clique de autenticação
+        playLoadingSound();
 
         try {
             const response = await fetch('/api/login', {
@@ -520,7 +558,6 @@
                 currentUser = data.username; 
                 currentRole = data.role;
                 
-                playSuccessSound();
                 document.getElementById('entry-screen').style.opacity = '0';
                 setTimeout(() => document.getElementById('entry-screen').style.display = 'none', 500);
                 
@@ -572,7 +609,7 @@
         let filtered = filter === 'Todos' ? globalDocs : globalDocs.filter(d => d.class === filter);
         
         if(filtered.length === 0) {
-            container.innerHTML = `<div style="font-family: var(--font-mono); color: #666; font-size: 13px;">Nenhum registro encontrado nesta categoria de ameaça.</div>`;
+            container.innerHTML = `<div style="font-family: var(--font-mono); color: #666; font-size: 13px;">Nenhum registro encontrado nesta categoria.</div>`;
             return;
         }
 
@@ -581,16 +618,9 @@
             let badgeHtml = "<span class='status-badge' style='background: #eee; color: #000;'>PENDENTE</span>";
             let displayDesc = (doc.desc || '').substring(0, 80) + '...';
 
-            // Cores específicas baseadas nas novas classes de ameaça
-            if(doc.class === 'Branco') borderColor = '#888888';
-            else if(doc.class === 'Amarelo') borderColor = '#cca300';
-            else if(doc.class === 'Laranja') borderColor = '#ff8c00';
-            else if(doc.class === 'Vermelho') borderColor = '#cc0000';
-            else if(doc.class === 'Roxo') borderColor = '#6600cc';
-            else if(doc.class === 'Preto') borderColor = '#111111';
-
             if(doc.status === "approved") {
-                badgeHtml = `<span class='status-badge' style='background: ${borderColor}; color: #fff;'>${doc.class.toUpperCase()}</span>`;
+                borderColor = "var(--approved)";
+                badgeHtml = `<span class='status-badge' style='background: var(--approved); color: #fff;'>APROVADO</span>`;
             } else if(doc.status === "rejected") {
                 borderColor = "var(--rejected)";
                 badgeHtml = "<span class='status-badge' style='background: var(--rejected); color: #fff;'>CENSURADO</span>";
@@ -601,7 +631,7 @@
             <div class="doc-card animated-card" onclick='playClickSound(); openReadModal(${doc.id})' style='border-top-color: ${borderColor}'>
                 ${badgeHtml}
                 <div class="doc-card-title">SCP-${doc.num}</div>
-                <div class="doc-card-class">CLASSE DE AMEAÇA: ${doc.class}</div>
+                <div class="doc-card-class">CLASSE: ${doc.class} | AMEAÇA: ${doc.threat || 'N/A'}</div>
                 <div class="doc-card-desc">${displayDesc}</div>
             </div>`;
         });
@@ -611,13 +641,17 @@
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     function openCreateModal() {
-        ['doc-num','doc-class','doc-image','doc-scientist','doc-companions','doc-classd','doc-desc','doc-containment','doc-obs'].forEach(id => document.getElementById(id).value = '');
+        ['doc-num','doc-class','doc-threat','doc-image','doc-scientist','doc-companions','doc-classd','doc-desc','doc-containment','doc-obs'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = '';
+        });
         openModal('create-modal');
     }
 
     function saveDocument() {
         const num = document.getElementById('doc-num').value.trim();
         const scpClass = document.getElementById('doc-class').value;
+        const scpThreat = document.getElementById('doc-threat').value;
         const sci = document.getElementById('doc-scientist').value.trim();
         const comp = document.getElementById('doc-companions').value.trim();
         const dclass = document.getElementById('doc-classd').value.trim();
@@ -626,13 +660,13 @@
         const obs = document.getElementById('doc-obs').value.trim();
         const imgInput = document.getElementById('doc-image');
 
-        if(!num || !scpClass || !sci || !dclass || !desc || !cont || !obs) {
+        if(!num || !scpClass || !scpThreat || !sci || !dclass || !desc || !cont || !obs) {
             playAlertSound();
             alert("Erro: Preencha todos os campos obrigatórios (*)."); return;
         }
 
         const newDoc = { 
-            num, class: scpClass, sci, comp, dclass, desc, cont, obs, image: null,
+            num, class: scpClass, threat: scpThreat, sci, comp, dclass, desc, cont, obs, image: null,
             creator: currentUser, status: "pending", rejectReason: ""
         };
 
@@ -679,13 +713,16 @@
 
         const isCreator = (doc.creator === currentUser);
         const isAdmin = (currentRole === "O5");
+        const isLevel5OrO5 = (currentRole === "Nível 5" || currentRole === "O5");
         
         document.getElementById('side-panel').style.display = 'none';
         document.getElementById('eval-panel').style.display = 'none';
+        document.getElementById('delete-panel').style.display = 'none';
         document.getElementById('read-img-box').style.display = 'none';
         
         document.getElementById('read-num').innerText = doc.num;
         document.getElementById('read-class').innerText = doc.class;
+        document.getElementById('read-threat').innerText = doc.threat || 'Não Especificada';
         document.getElementById('read-sci').innerText = doc.sci;
         document.getElementById('read-dclass').innerText = doc.dclass;
         
@@ -731,6 +768,11 @@
             document.getElementById('btn-reject').onclick = () => { playAlertSound(); processEvaluation(doc.id, 'rejected'); };
         }
 
+        // Habilita painel de exclusão para Nível 5 e O5
+        if(isLevel5OrO5) {
+            document.getElementById('delete-panel').style.display = 'block';
+        }
+
         openModal('read-modal');
     }
 
@@ -765,6 +807,31 @@
             playAlertSound();
             console.error(err);
             alert("Erro de comunicação com o servidor.");
+        }
+    }
+
+    async function deleteCurrentDocument() {
+        if(!activeDocId) return;
+        if(!confirm("TEM CERTEZA QUE DESEJA APAGAR ESTE DOCUMENTO PERMANENTEMENTE DO BANCO DE DADOS?")) return;
+
+        try {
+            const res = await fetch(`/api/docs/${activeDocId}`, {
+                method: 'DELETE'
+            });
+
+            if(res.ok) {
+                playAlertSound();
+                alert("Documento apagado com sucesso.");
+                closeModal('read-modal');
+                await loadDocs();
+                renderDocs('Todos');
+            } else {
+                playAlertSound();
+                alert("Erro ao excluir o documento.");
+            }
+        } catch(err) {
+            playAlertSound();
+            alert("Erro de conexão com o servidor ao excluir.");
         }
     }
 

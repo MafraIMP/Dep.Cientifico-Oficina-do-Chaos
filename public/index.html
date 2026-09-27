@@ -143,6 +143,37 @@
             letter-spacing: 0.5px;
         }
 
+        /* Controlador de música sutil no canto superior acima da marca d'água */
+        .music-controller {
+            position: fixed;
+            bottom: 22px;
+            right: 8px;
+            display: none; /* Revelado após o login */
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--border);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            z-index: 999998;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            backdrop-filter: blur(2px);
+        }
+        .music-controller button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 10px;
+            color: var(--primary);
+            padding: 2px 4px;
+            transition: 0.2s;
+        }
+        .music-controller button:hover {
+            color: #4b0082;
+        }
+
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--border); }
@@ -150,6 +181,19 @@
     </style>
 </head>
 <body>
+
+    <!-- Áudio de Fundo (The Final Flash of Existence) -->
+    <audio id="bg-music" loop>
+        <source src="The Final Flash of Existence (Slowed to perfection) - hordol (youtube).mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Controlador de Música Sutil -->
+    <div class="music-controller" id="music-ctrl-box">
+        <i class="fa-solid fa-music" style="font-size: 9px; color: #4b0082;"></i>
+        <button onclick="adjustMusicVolume(-0.1)" title="Diminuir Volume"><i class="fa-solid fa-volume-low"></i></button>
+        <button id="play-pause-btn" onclick="togglePlayMusic()" title="Pausar / Tocar"><i class="fa-solid fa-pause"></i></button>
+        <button onclick="adjustMusicVolume(0.1)" title="Aumentar Volume"><i class="fa-solid fa-volume-high"></i></button>
+    </div>
 
     <div class="mafrainf-watermark">ⓘ Powered by: MafraINF</div>
 
@@ -412,23 +456,24 @@
         }
     }
 
+    // Efeitos sonoros aprimorados, limpos e modernos
     function playClickSound() {
         try {
             initAudio();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.05);
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.03);
             
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
 
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             
             osc.start();
-            osc.stop(audioCtx.currentTime + 0.05);
+            osc.stop(audioCtx.currentTime + 0.03);
         } catch(e) {}
     }
 
@@ -439,19 +484,19 @@
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(100, now);
-            osc.frequency.exponentialRampToValueAtTime(1200, now + 1.2);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.exponentialRampToValueAtTime(900, now + 1.0);
 
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.linearRampToValueAtTime(0.15, now + 1.0);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+            gain.gain.setValueAtTime(0.05, now);
+            gain.gain.linearRampToValueAtTime(0.1, now + 0.8);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
 
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
             osc.start(now);
-            osc.stop(now + 1.4);
+            osc.stop(now + 1.1);
         } catch(e) {}
     }
 
@@ -463,17 +508,18 @@
             const gain = audioCtx.createGain();
             
             osc.type = 'triangle';
-            osc.frequency.setValueAtTime(440, now);
-            osc.frequency.setValueAtTime(880, now + 0.08);
+            osc.frequency.setValueAtTime(523.25, now); // Nota C5
+            osc.frequency.setValueAtTime(659.25, now + 0.08); // Nota E5
+            osc.frequency.setValueAtTime(783.99, now + 0.16); // Nota G5
 
-            gain.gain.setValueAtTime(0.12, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
 
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
             osc.start(now);
-            osc.stop(now + 0.3);
+            osc.stop(now + 0.4);
         } catch(e) {}
     }
 
@@ -485,18 +531,51 @@
             const gain = audioCtx.createGain();
             
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, now);
-            osc.frequency.linearRampToValueAtTime(80, now + 0.25);
+            osc.frequency.setValueAtTime(220, now);
+            osc.frequency.linearRampToValueAtTime(110, now + 0.2);
 
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
 
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
             osc.start(now);
-            osc.stop(now + 0.25);
+            osc.stop(now + 0.2);
         } catch(e) {}
+    }
+
+    // Controles de Música de Fundo
+    function startBackgroundMusic() {
+        const bgMusic = document.getElementById('bg-music');
+        bgMusic.volume = 0.45; // Volume inicial exato 45
+        bgMusic.play().then(() => {
+            document.getElementById('music-ctrl-box').style.display = 'flex';
+        }).catch(err => {
+            console.log("Autoplay bloqueado pelo navegador, aguardando interação.", err);
+        });
+    }
+
+    function togglePlayMusic() {
+        const bgMusic = document.getElementById('bg-music');
+        const btn = document.getElementById('play-pause-btn');
+        playClickSound();
+        if (bgMusic.paused) {
+            bgMusic.play();
+            btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+        } else {
+            bgMusic.pause();
+            btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+        }
+    }
+
+    function adjustMusicVolume(amount) {
+        const bgMusic = document.getElementById('bg-music');
+        playClickSound();
+        let newVol = bgMusic.volume + amount;
+        if (newVol > 1) newVol = 1;
+        if (newVol < 0) newVol = 0;
+        bgMusic.volume = Number(newVol.toFixed(2));
     }
 
     let isLogged = false;
@@ -532,6 +611,9 @@
             await loadUsers();
             renderDocs(currentFilter);
             startLiveUpdates();
+
+            // Inicia a música ao restaurar sessão pelo Ctrl+R
+            startBackgroundMusic();
         }
     });
 
@@ -619,6 +701,10 @@
                         
                         renderDocs('Todos');
                         startLiveUpdates(); // Ativa a sincronização ao vivo
+                        
+                        // DISPARA A MÚSICA APÓS O LOGIN TOTAL CONCLUÍDO
+                        startBackgroundMusic();
+
                     }, 1200);
                 }, 2000);
             } else {
@@ -645,11 +731,10 @@
             const previousLength = globalDocs.length;
             await loadDocs();
             
-            // Se houver alteração de quantidade ou dados, atualiza a tela automaticamente mantendo o filtro atual
             if (globalDocs.length !== previousLength) {
                 renderDocs(currentFilter);
             }
-        }, 4000); // Verifica atualizações a cada 4 segundos
+        }, 4000);
     }
 
     function renderDocs(filter) {

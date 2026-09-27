@@ -373,14 +373,8 @@
     let currentRole = "";
     let activeDocId = null;
     let globalDocs = [];
-    
-    let registeredUsers = [
-        { username: "admin", password: "OFICINA DO CAOS", role: "O5", blocked: false },
-        { username: "diretor", password: "123", role: "O5", blocked: false },
-        { username: "cientista1", password: "123", role: "Nível 2", blocked: false } 
-    ];
+    let registeredUsers = [];
 
-    // Função para carregar documentos da API
     async function loadDocs() {
         try {
             const res = await fetch('/api/docs');
@@ -393,7 +387,18 @@
         }
     }
 
-    // Função de login integrada com a API
+    async function loadUsers() {
+        try {
+            const res = await fetch('/api/users');
+            const data = await res.json();
+            if(Array.isArray(data)) {
+                registeredUsers = data;
+            }
+        } catch (err) {
+            console.error("Erro ao carregar usuários da API:", err);
+        }
+    }
+
     async function validateGateLogin() {
         const u = document.getElementById('gate-user').value.trim().toLowerCase();
         const p = document.getElementById('gate-pass').value;
@@ -420,8 +425,8 @@
                 introScreen.style.display = 'flex';
                 introLogo.classList.add('logo-spinning');
                 
-                // Carrega os documentos do banco antes de liberar a tela
                 await loadDocs();
+                await loadUsers();
 
                 setTimeout(() => {
                     document.getElementById('intro-text').innerText = "ACESSO AUTORIZADO.";
@@ -643,23 +648,36 @@
         }
     }
 
-    function openAdminModal() {
+    async function openAdminModal() {
+        await loadUsers();
         renderAdminUserList();
         openModal('admin-modal');
     }
 
-    function adminCreateUser() {
-        const u = document.getElementById('new-user').value.trim();
+    async function adminCreateUser() {
+        const u = document.getElementById('new-user').value.trim().toLowerCase();
         const p = document.getElementById('new-pass').value;
         if(!u || !p) return alert("Preencha ID e Senha.");
-        if(registeredUsers.find(x => x.username === u.toLowerCase())) return alert("Usuário já existe.");
         
-        registeredUsers.push({ username: u.toLowerCase(), password: p, role: "Nível 1", blocked: false });
-        alert(`Operador ${u} criado com sucesso.`);
-        
-        document.getElementById('new-user').value = '';
-        document.getElementById('new-pass').value = '';
-        renderAdminUserList();
+        try {
+            const res = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p, role: "Nível 1", blocked: false })
+            });
+            const data = await res.json();
+            if(res.ok) {
+                alert(`Operador ${u} criado com sucesso.`);
+                document.getElementById('new-user').value = '';
+                document.getElementById('new-pass').value = '';
+                await loadUsers();
+                renderAdminUserList();
+            } else {
+                alert(data.error || "Erro ao criar usuário.");
+            }
+        } catch(err) {
+            alert("Erro de conexão ao criar usuário.");
+        }
     }
 
     function renderAdminUserList() {
@@ -679,11 +697,11 @@
                     <div style="font-weight: 900; width: 120px;">${u.username.toUpperCase()}</div>
                     
                     <div style="display:flex; gap: 10px; align-items:center;">
-                        <select class="form-control" style="width: auto; padding: 5px; margin:0;" onchange="changeUserRole('${u.username}', this.value)" ${isMe ? 'disabled' : ''}>
+                        <select class="form-control" style="width: auto; padding: 5px; margin:0;" onchange="updateUserStatus('${u.username}', this.value, ${u.blocked})" ${isMe ? 'disabled' : ''}>
                             ${selectOptions}
                         </select>
                         
-                        <button class="btn ${u.blocked ? 'btn-success' : 'btn-danger'}" style="padding: 5px 10px;" onclick="toggleUserBlock('${u.username}')" ${isMe ? 'disabled' : ''}>
+                        <button class="btn ${u.blocked ? 'btn-success' : 'btn-danger'}" style="padding: 5px 10px;" onclick="updateUserStatus('${u.username}', '${u.role}', ${!u.blocked})" ${isMe ? 'disabled' : ''}>
                             ${u.blocked ? '<i class="fa-solid fa-unlock"></i> Restaurar' : '<i class="fa-solid fa-ban"></i> Revogar'}
                         </button>
                     </div>
@@ -692,16 +710,21 @@
         });
     }
 
-    function changeUserRole(username, newRole) {
-        const u = registeredUsers.find(x => x.username === username);
-        if(u) u.role = newRole;
-    }
-
-    function toggleUserBlock(username) {
-        const u = registeredUsers.find(x => x.username === username);
-        if(u) {
-            u.blocked = !u.blocked;
-            renderAdminUserList();
+    async function updateUserStatus(username, role, blocked) {
+        try {
+            const res = await fetch(`/api/users/${username}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role, blocked })
+            });
+            if(res.ok) {
+                await loadUsers();
+                renderAdminUserList();
+            } else {
+                alert("Erro ao atualizar dados do usuário.");
+            }
+        } catch(err) {
+            alert("Erro de conexão com o servidor.");
         }
     }
 </script>

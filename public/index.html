@@ -129,14 +129,13 @@
         .user-mgmt-item { display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid var(--border); padding: 10px 15px; margin-bottom: 10px; font-family: var(--font-mono); font-size: 12px; border-radius: 2px; }
         .user-mgmt-item.blocked { border-color: var(--rejected); background: #fff0f0; }
 
-        /* Assinatura MafraINF no canto inferior direito */
         .mafrainf-watermark {
             position: fixed;
             bottom: 5px;
             right: 8px;
             font-family: var(--font-mono);
             font-size: 9px;
-            color: #4b0082; /* Roxo Índigo */
+            color: #4b0082;
             font-weight: bold;
             opacity: 0.75;
             z-index: 999999;
@@ -360,7 +359,6 @@
                         </div>
                     </div>
 
-                    <!-- Botão de Apagar para Nível 5 e O5 -->
                     <div id="delete-panel" style="margin-top: 20px; display: none; text-align: right;">
                         <button class="btn btn-danger" onclick="deleteCurrentDocument()"><i class="fa-solid fa-trash-can"></i> Deletar Documento Permanentemente</button>
                     </div>
@@ -403,9 +401,6 @@
     </div>
 
 <script>
-    /* =========================================================
-       SISTEMA DE EFEITOS SONOROS (WEB AUDIO API SYNTHESIZER)
-       ========================================================= */
     let audioCtx = null;
 
     function initAudio() {
@@ -510,6 +505,42 @@
     let activeDocId = null;
     let globalDocs = [];
     let registeredUsers = [];
+    let currentFilter = 'Todos';
+
+    // ==========================================
+    // PERSISTÊNCIA DE SESSÃO AO CARREGAR (CTRL+R)
+    // ==========================================
+    window.addEventListener('DOMContentLoaded', async () => {
+        const savedUser = localStorage.getItem('scp_user');
+        const savedRole = localStorage.getItem('scp_role');
+
+        if (savedUser && savedRole) {
+            currentUser = savedUser;
+            currentRole = savedRole;
+            isLogged = true;
+
+            document.getElementById('entry-screen').style.display = 'none';
+            
+            document.getElementById('auth-status-ui').innerHTML = `<span>OPE: <strong>${currentUser.toUpperCase()}</strong> | CARGO: <strong>${currentRole.toUpperCase()}</strong></span> <button class="btn" onclick="logoutSession()">SAIR</button>`;
+            document.getElementById('admin-actions').style.display = 'flex'; 
+            
+            if(currentRole !== "O5") {
+                document.getElementById('admin-actions').children[0].style.display = 'none';
+            }
+
+            await loadDocs();
+            await loadUsers();
+            renderDocs(currentFilter);
+            startLiveUpdates();
+        }
+    });
+
+    function logoutSession() {
+        localStorage.removeItem('scp_user');
+        localStorage.removeItem('scp_role');
+        playClickSound();
+        location.reload();
+    }
 
     async function loadDocs() {
         try {
@@ -554,6 +585,10 @@
                 isLogged = true; 
                 currentUser = data.username; 
                 currentRole = data.role;
+
+                // Salva a sessão no navegador para resistir ao Ctrl+R
+                localStorage.setItem('scp_user', currentUser);
+                localStorage.setItem('scp_role', currentRole);
                 
                 document.getElementById('entry-screen').style.opacity = '0';
                 setTimeout(() => document.getElementById('entry-screen').style.display = 'none', 500);
@@ -575,7 +610,7 @@
                         introScreen.style.opacity = '0'; 
                         setTimeout(() => introScreen.style.display = 'none', 500);
                         
-                        document.getElementById('auth-status-ui').innerHTML = `<span>OPE: <strong>${currentUser.toUpperCase()}</strong> | CARGO: <strong>${currentRole.toUpperCase()}</strong></span> <button class="btn" onclick="playClickSound(); location.reload()">SAIR</button>`;
+                        document.getElementById('auth-status-ui').innerHTML = `<span>OPE: <strong>${currentUser.toUpperCase()}</strong> | CARGO: <strong>${currentRole.toUpperCase()}</strong></span> <button class="btn" onclick="logoutSession()">SAIR</button>`;
                         document.getElementById('admin-actions').style.display = 'flex'; 
                         
                         if(currentRole !== "O5") {
@@ -583,6 +618,7 @@
                         }
                         
                         renderDocs('Todos');
+                        startLiveUpdates(); // Ativa a sincronização ao vivo
                     }, 1200);
                 }, 2000);
             } else {
@@ -600,7 +636,24 @@
         }
     }
 
+    // ==========================================
+    // SINCRONIZAÇÃO EM TEMPO REAL (AO VIVO)
+    // ==========================================
+    function startLiveUpdates() {
+        setInterval(async () => {
+            if (!isLogged) return;
+            const previousLength = globalDocs.length;
+            await loadDocs();
+            
+            // Se houver alteração de quantidade ou dados, atualiza a tela automaticamente mantendo o filtro atual
+            if (globalDocs.length !== previousLength) {
+                renderDocs(currentFilter);
+            }
+        }, 4000); // Verifica atualizações a cada 4 segundos
+    }
+
     function renderDocs(filter) {
+        currentFilter = filter;
         const container = document.getElementById('docs-container');
         container.innerHTML = '';
         let filtered = filter === 'Todos' ? globalDocs : globalDocs.filter(d => d.class === filter);
@@ -691,7 +744,7 @@
                 alert(`Registro SCP-${doc.num} arquivado e aguardando avaliação do Comando O5.`);
                 closeModal('create-modal');
                 await loadDocs();
-                renderDocs('Todos');
+                renderDocs(currentFilter);
             } else {
                 playAlertSound();
                 alert("Erro ao salvar no banco de dados central.");
@@ -794,7 +847,7 @@
                 alert(newStatus === 'approved' ? "Documento APROVADO com sucesso." : "Documento REJEITADO e CENSURADO para a base.");
                 closeModal('read-modal');
                 await loadDocs();
-                renderDocs('Todos'); 
+                renderDocs(currentFilter); 
             } else {
                 playAlertSound();
                 alert("Erro ao atualizar o status na API.");
@@ -820,7 +873,7 @@
                 alert("Documento apagado com sucesso.");
                 closeModal('read-modal');
                 await loadDocs();
-                renderDocs('Todos');
+                renderDocs(currentFilter);
             } else {
                 playAlertSound();
                 alert("Erro ao excluir o documento.");

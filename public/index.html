@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -50,6 +50,7 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes spinLogo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
         
         .animated-card { animation: slideInUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
         .logo-spinning { animation: spinLogo 2s linear infinite; }
@@ -83,8 +84,18 @@
             text-align: center; 
             font-family: var(--font-mono); 
             animation: fadeIn 0.3s ease; 
+            position: relative;
+            overflow: hidden;
         }
-        #blocked-screen h1 { font-size: 40px; margin-bottom: 20px; letter-spacing: 5px; border: 2px dashed #ff0000; padding: 20px; }
+        #blocked-screen::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 10px;
+            background: rgba(255, 0, 0, 0.3);
+            box-shadow: 0 0 20px rgba(255,0,0,0.5);
+            animation: scanline 3s linear infinite;
+        }
+        #blocked-screen h1 { font-size: 40px; margin-bottom: 20px; letter-spacing: 5px; border: 2px dashed #ff0000; padding: 20px; text-shadow: 0 0 10px rgba(255,0,0,0.5); }
         #blocked-screen p { font-size: 14px; margin-bottom: 30px; }
 
         .login-gate-box { 
@@ -285,7 +296,7 @@
         ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
     <!-- Áudio de Fundo -->
     <audio id="bg-music" loop>
@@ -306,7 +317,7 @@
     <div id="blocked-screen">
         <h1>[ ACESSO REVOGADO ]</h1>
         <p>SUA CREDENCIAL FOI TERMINADA PELO COMANDO O5.<br>QUALQUER TENTATIVA DE INVASÃO ACIONARÁ A FORÇA TAREFA MÓVEL.</p>
-        <button class="btn" style="border-color:#ff0000; color:#ff0000;" onclick="playClickSound(); location.reload()">VOLTAR AO INÍCIO</button>
+        <button class="btn" style="border-color:#ff0000; color:#ff0000;" onclick="playClickSound(); location.reload()">TENTAR RECONECTAR</button>
     </div>
 
     <!-- Tela de Autenticação -->
@@ -559,7 +570,37 @@
     </div>
 
 <script>
-    // --- Sistema de Áudio (Web Audio API) ---
+    // --- Proteção Contra Inspeção (Anti-DevTools) ---
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'F12' || 
+           (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) || 
+           (event.ctrlKey && event.key === 'U')) {
+            event.preventDefault();
+        }
+    });
+
+    // --- Sistema de Inatividade (5 Minutos) ---
+    let inactivityTimer;
+    function resetInactivityTimer() {
+        if(!isLogged) return;
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => {
+            if(isLogged) {
+                alert("ACESSO EXPIRADO POR INATIVIDADE DE 5 MINUTOS. DESLIGANDO SESSÃO.");
+                logoutSession();
+            }
+        }, 300000); // 5 minutos = 300000 ms
+    }
+    
+    // Captura eventos de interação para resetar o timer
+    window.onload = resetInactivityTimer;
+    document.onmousemove = resetInactivityTimer;
+    document.onkeydown = resetInactivityTimer;
+    document.onscroll = resetInactivityTimer;
+    document.onclick = resetInactivityTimer;
+
+    // --- Sistema de Áudio Aprimorado (Sci-Fi/Terminal Web Audio API) ---
     let audioCtx = null;
 
     function initAudio() {
@@ -578,43 +619,51 @@
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             
-            if (type === 'click') {
+            if (type === 'click') { // Som mais digital e rápido (Terminal Keystroke)
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.05);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.05);
+            } 
+            else if (type === 'loading') { // Deep Hum tecnológico
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.linearRampToValueAtTime(400, now + 0.5);
+                osc.frequency.linearRampToValueAtTime(600, now + 1.2);
+                gain.gain.setValueAtTime(0.02, now);
+                gain.gain.linearRampToValueAtTime(0.08, now + 0.8);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 1.2);
+            }
+            else if (type === 'success') { // Chime cibernético
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(600, now);
-                osc.frequency.exponentialRampToValueAtTime(200, now + 0.03);
+                osc.frequency.setValueAtTime(800, now + 0.1);
+                osc.frequency.setValueAtTime(1200, now + 0.2);
                 gain.gain.setValueAtTime(0.08, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
                 osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(now); osc.stop(now + 0.03);
-            } 
-            else if (type === 'loading') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(900, now + 1.0);
-                gain.gain.setValueAtTime(0.05, now);
-                gain.gain.linearRampToValueAtTime(0.1, now + 0.8);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(now); osc.stop(now + 1.1);
+                osc.start(now); osc.stop(now + 0.5);
             }
-            else if (type === 'success') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, now);
-                osc.frequency.setValueAtTime(659.25, now + 0.08);
-                osc.frequency.setValueAtTime(783.99, now + 0.16);
-                gain.gain.setValueAtTime(0.08, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            else if (type === 'alert') { // Duplo Beep Agressivo (Klaxon)
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(250, now);
+                osc.frequency.setValueAtTime(250, now + 0.1);
+                osc.frequency.setValueAtTime(100, now + 0.11); // Gap
+                osc.frequency.setValueAtTime(250, now + 0.15);
+                
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.setValueAtTime(0.1, now + 0.1);
+                gain.gain.setValueAtTime(0, now + 0.11);
+                gain.gain.setValueAtTime(0.1, now + 0.15);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                
                 osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(now); osc.stop(now + 0.4);
-            }
-            else if (type === 'alert') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(220, now);
-                osc.frequency.linearRampToValueAtTime(110, now + 0.2);
-                gain.gain.setValueAtTime(0.12, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(now); osc.stop(now + 0.2);
+                osc.start(now); osc.stop(now + 0.3);
             }
         } catch(e) { console.error("Erro de áudio", e); }
     }
@@ -683,6 +732,7 @@
         currentUser = user;
         currentRole = role;
         isLogged = true;
+        resetInactivityTimer();
 
         document.getElementById('entry-screen').style.display = 'none';
         setupUserInterface();
@@ -708,6 +758,7 @@
     function logoutSession() {
         localStorage.removeItem('scp_user');
         localStorage.removeItem('scp_role');
+        isLogged = false;
         playClickSound();
         location.reload();
     }
@@ -792,11 +843,31 @@
     function startLiveUpdates() {
         setInterval(async () => {
             if (!isLogged) return;
+            
+            // 1. Atualizar Documentos
             const previousLength = globalDocs.length;
             await loadDocs();
             if (globalDocs.length !== previousLength) {
                 renderDocs(currentFilter);
             }
+            
+            // 2. Verificação de Bloqueio em Tempo Real (Live Kick)
+            await loadUsers();
+            const me = registeredUsers.find(u => u.username === currentUser);
+            if (me && me.blocked) {
+                playAlertSound();
+                // Destrói credenciais ativas e força a tela de bloqueio
+                localStorage.removeItem('scp_user');
+                localStorage.removeItem('scp_role');
+                isLogged = false;
+                
+                // Fecha modais e exibe tela vermelha
+                const modals = document.querySelectorAll('.modal-overlay');
+                modals.forEach(m => m.style.display = 'none');
+                
+                document.getElementById('blocked-screen').style.display = 'flex';
+            }
+            
         }, 4000);
     }
 
